@@ -18,20 +18,44 @@ export function ChangePasswordForm() {
     resolver: zodResolver(changePasswordSchema),
     defaultValues: { currentPassword: "", password: "", confirmPassword: "" },
   });
-  const { execute, pending } = useAction(changePasswordAction, { form, onSuccess: () => router.replace("/dashboard") });
+  const { execute, pending } = useAction(changePasswordAction, {
+    form,
+    onSuccess: () => router.replace("/dashboard"),
+  });
   const e = form.formState.errors;
   return (
     <Card>
       <CardContent>
         <form className="grid gap-4" onSubmit={form.handleSubmit((v) => execute(v))} noValidate>
-          <FormField label="Current password" htmlFor="currentPassword" error={e.currentPassword?.message}>
-            <Input type="password" autoComplete="current-password" {...form.register("currentPassword")} />
+          <FormField
+            label="Current password"
+            htmlFor="currentPassword"
+            error={e.currentPassword?.message}
+          >
+            <Input
+              type="password"
+              autoComplete="current-password"
+              {...form.register("currentPassword")}
+            />
           </FormField>
-          <FormField label="New password" htmlFor="password" error={e.password?.message} hint="10+ characters, mixed case, a number and a symbol.">
+          <FormField
+            label="New password"
+            htmlFor="password"
+            error={e.password?.message}
+            hint="10+ characters, mixed case, a number and a symbol."
+          >
             <Input type="password" autoComplete="new-password" {...form.register("password")} />
           </FormField>
-          <FormField label="Confirm new password" htmlFor="confirmPassword" error={e.confirmPassword?.message}>
-            <Input type="password" autoComplete="new-password" {...form.register("confirmPassword")} />
+          <FormField
+            label="Confirm new password"
+            htmlFor="confirmPassword"
+            error={e.confirmPassword?.message}
+          >
+            <Input
+              type="password"
+              autoComplete="new-password"
+              {...form.register("confirmPassword")}
+            />
           </FormField>
           <Button type="submit" disabled={pending} className="justify-self-start">
             {pending ? "Saving…" : "Update password"}

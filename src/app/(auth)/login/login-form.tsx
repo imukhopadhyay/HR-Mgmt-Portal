@@ -19,7 +19,10 @@ export function LoginForm({ next }: { next?: string }) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
-  const form = useForm<Values>({ resolver: zodResolver(loginSchema), defaultValues: { email: "", password: "" } });
+  const form = useForm<Values>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: { email: "", password: "" },
+  });
 
   const onSubmit = form.handleSubmit((values) => {
     setError(null);
@@ -41,20 +44,34 @@ export function LoginForm({ next }: { next?: string }) {
       <CardContent>
         <form onSubmit={onSubmit} className="grid gap-4" noValidate>
           {error && (
-            <div role="alert" className="border-destructive/30 bg-destructive/10 text-destructive rounded-md border px-3 py-2 text-sm">
+            <div
+              role="alert"
+              className="border-destructive/30 bg-destructive/10 text-destructive rounded-md border px-3 py-2 text-sm"
+            >
               {error}
             </div>
           )}
-          <FormField label="Work email" htmlFor="email" error={form.formState.errors.email?.message}>
+          <FormField
+            label="Work email"
+            htmlFor="email"
+            error={form.formState.errors.email?.message}
+          >
             <Input type="email" autoComplete="username" autoFocus {...form.register("email")} />
           </FormField>
-          <FormField label="Password" htmlFor="password" error={form.formState.errors.password?.message}>
+          <FormField
+            label="Password"
+            htmlFor="password"
+            error={form.formState.errors.password?.message}
+          >
             <Input type="password" autoComplete="current-password" {...form.register("password")} />
           </FormField>
           <Button type="submit" disabled={pending} className="w-full">
             {pending ? "Signing in…" : "Sign in"}
           </Button>
-          <Link href="/forgot-password" className="text-primary text-center text-sm hover:underline">
+          <Link
+            href="/forgot-password"
+            className="text-primary text-center text-sm hover:underline"
+          >
             Forgot password?
           </Link>
         </form>

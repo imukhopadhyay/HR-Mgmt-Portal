@@ -74,7 +74,11 @@ export function annualIncomeTax(annualTaxable: number, cfg: StatutoryConfig["tds
   return r(tax * (1 + cfg.cessRate / 100));
 }
 
-export function professionalTax(monthlyGross: number, state: string | null | undefined, cfg: StatutoryConfig["professionalTax"]): number {
+export function professionalTax(
+  monthlyGross: number,
+  state: string | null | undefined,
+  cfg: StatutoryConfig["professionalTax"],
+): number {
   if (!cfg.enabled) return 0;
   const slabs: PtSlab[] = (state && cfg.stateSlabs[state]) || cfg.defaultSlabs;
   for (const s of slabs) if (s.upTo === null || monthlyGross <= s.upTo) return s.amount;
@@ -108,7 +112,9 @@ export function calculatePayroll(input: PayrollInput): PayrollResult {
   const factor = input.daysInMonth > 0 ? paidDays / input.daysInMonth : 0;
   const comps = monthlyComponents(input.annualCtc, input.lines);
 
-  const earnings: Amount[] = comps.filter((c) => c.type === "EARNING").map((c) => ({ code: c.code, name: c.name, amount: r(c.amount * factor) }));
+  const earnings: Amount[] = comps
+    .filter((c) => c.type === "EARNING")
+    .map((c) => ({ code: c.code, name: c.name, amount: r(c.amount * factor) }));
   const gross = earnings.reduce((s, e) => s + e.amount, 0);
   const fullGross = comps.filter((c) => c.type === "EARNING").reduce((s, c) => s + c.amount, 0);
   const basic = earnings.find((e) => e.code === "BASIC")?.amount ?? 0;
@@ -118,22 +124,41 @@ export function calculatePayroll(input: PayrollInput): PayrollResult {
 
   if (config.pf.enabled && !input.pfOptedOut && basic > 0) {
     const wage = config.pf.applyCeiling ? Math.min(basic, config.pf.wageCeiling) : basic;
-    deductions.push({ code: "PF", name: "Provident Fund (employee)", amount: r((wage * config.pf.employeeRate) / 100) });
-    employer.push({ code: "PF_ER", name: "Provident Fund (employer)", amount: r((wage * config.pf.employerRate) / 100) });
+    deductions.push({
+      code: "PF",
+      name: "Provident Fund (employee)",
+      amount: r((wage * config.pf.employeeRate) / 100),
+    });
+    employer.push({
+      code: "PF_ER",
+      name: "Provident Fund (employer)",
+      amount: r((wage * config.pf.employerRate) / 100),
+    });
   }
   if (config.esi.enabled && fullGross > 0 && fullGross <= config.esi.grossThreshold) {
-    deductions.push({ code: "ESI", name: "ESI (employee)", amount: Math.ceil((gross * config.esi.employeeRate) / 100) });
-    employer.push({ code: "ESI_ER", name: "ESI (employer)", amount: Math.ceil((gross * config.esi.employerRate) / 100) });
+    deductions.push({
+      code: "ESI",
+      name: "ESI (employee)",
+      amount: Math.ceil((gross * config.esi.employeeRate) / 100),
+    });
+    employer.push({
+      code: "ESI_ER",
+      name: "ESI (employer)",
+      amount: Math.ceil((gross * config.esi.employerRate) / 100),
+    });
   }
   const pt = professionalTax(gross, input.state, config.professionalTax);
   if (pt > 0 && gross > 0) deductions.push({ code: "PT", name: "Professional Tax", amount: pt });
 
   let annualTaxProjection = 0;
   if (config.tds.enabled) {
-    const taxableMonthly = comps.filter((c) => c.type === "EARNING" && c.isTaxable).reduce((s, c) => s + c.amount, 0);
+    const taxableMonthly = comps
+      .filter((c) => c.type === "EARNING" && c.isTaxable)
+      .reduce((s, c) => s + c.amount, 0);
     annualTaxProjection = annualIncomeTax(taxableMonthly * 12, config.tds);
     const monthlyTds = r((annualTaxProjection / 12) * factor);
-    if (monthlyTds > 0) deductions.push({ code: "TDS", name: "Income Tax (TDS)", amount: monthlyTds });
+    if (monthlyTds > 0)
+      deductions.push({ code: "TDS", name: "Income Tax (TDS)", amount: monthlyTds });
   }
   for (const c of comps.filter((c) => c.type === "DEDUCTION")) {
     if (c.amount > 0) deductions.push({ code: c.code, name: c.name, amount: r(c.amount) });

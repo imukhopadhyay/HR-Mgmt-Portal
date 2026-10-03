@@ -9,8 +9,10 @@ export async function PrivacySettings() {
       <CardHeader>
         <CardTitle>Data retention</CardTitle>
         <CardDescription>
-          Retention runs daily via the scheduled job and can be previewed here. Ex-employee records are anonymised (payroll and attendance totals are kept for statutory purposes);
-          rejected candidates, old notifications and expired security tokens are deleted. The audit trail is never deleted by the application. Review periods with Legal for applicable Indian
+          Retention runs daily via the scheduled job and can be previewed here. Ex-employee records
+          are anonymised (payroll and attendance totals are kept for statutory purposes); rejected
+          candidates, old notifications and expired security tokens are deleted. The audit trail is
+          never deleted by the application. Review periods with Legal for applicable Indian
           requirements (e.g. DPDP Act 2023, labour and tax record-keeping rules).
         </CardDescription>
       </CardHeader>

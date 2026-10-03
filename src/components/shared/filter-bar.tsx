@@ -15,7 +15,15 @@ export interface FilterDef {
 }
 
 /** URL-driven search + filters; server components read them from searchParams. */
-export function FilterBar({ searchPlaceholder, filters = [], search = true }: { searchPlaceholder?: string; filters?: FilterDef[]; search?: boolean }) {
+export function FilterBar({
+  searchPlaceholder,
+  filters = [],
+  search = true,
+}: {
+  searchPlaceholder?: string;
+  filters?: FilterDef[];
+  search?: boolean;
+}) {
   const router = useRouter();
   const pathname = usePathname();
   const params = useSearchParams();
@@ -44,11 +52,23 @@ export function FilterBar({ searchPlaceholder, filters = [], search = true }: { 
   const active = filters.some((f) => params.get(f.name)) || !!params.get("q");
 
   return (
-    <div className="flex flex-col gap-2 md:flex-row md:flex-wrap md:items-center" aria-busy={pending}>
+    <div
+      className="flex flex-col gap-2 md:flex-row md:flex-wrap md:items-center"
+      aria-busy={pending}
+    >
       {search && (
         <div className="relative md:w-72">
-          <Search className="text-muted-foreground pointer-events-none absolute top-2.5 left-2.5 size-4" aria-hidden />
-          <Input aria-label="Search" placeholder={searchPlaceholder ?? "Search…"} className="pl-8" value={q} onChange={(e) => setQ(e.target.value)} />
+          <Search
+            className="text-muted-foreground pointer-events-none absolute top-2.5 left-2.5 size-4"
+            aria-hidden
+          />
+          <Input
+            aria-label="Search"
+            placeholder={searchPlaceholder ?? "Search…"}
+            className="pl-8"
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+          />
         </div>
       )}
       {filters.map((f) =>
@@ -62,7 +82,13 @@ export function FilterBar({ searchPlaceholder, filters = [], search = true }: { 
             onChange={(e) => update({ [f.name]: e.target.value })}
           />
         ) : (
-          <NativeSelect key={f.name} aria-label={f.label} className="md:w-48" value={params.get(f.name) ?? ""} onChange={(e) => update({ [f.name]: e.target.value })}>
+          <NativeSelect
+            key={f.name}
+            aria-label={f.label}
+            className="md:w-48"
+            value={params.get(f.name) ?? ""}
+            onChange={(e) => update({ [f.name]: e.target.value })}
+          >
             <option value="">{f.label}: All</option>
             {f.options?.map((o) => (
               <option key={o.value} value={o.value}>

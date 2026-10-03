@@ -15,7 +15,10 @@ import { forgotPasswordAction } from "@/server/actions/auth";
 export default function ForgotPasswordPage() {
   const [message, setMessage] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
-  const form = useForm<z.input<typeof forgotPasswordSchema>>({ resolver: zodResolver(forgotPasswordSchema), defaultValues: { email: "" } });
+  const form = useForm<z.input<typeof forgotPasswordSchema>>({
+    resolver: zodResolver(forgotPasswordSchema),
+    defaultValues: { email: "" },
+  });
   const onSubmit = form.handleSubmit((v) =>
     startTransition(async () => {
       const res = await forgotPasswordAction(v);
@@ -35,7 +38,11 @@ export default function ForgotPasswordPage() {
               {message}
             </p>
           )}
-          <FormField label="Work email" htmlFor="email" error={form.formState.errors.email?.message}>
+          <FormField
+            label="Work email"
+            htmlFor="email"
+            error={form.formState.errors.email?.message}
+          >
             <Input type="email" autoComplete="email" {...form.register("email")} />
           </FormField>
           <Button type="submit" disabled={pending}>

@@ -110,11 +110,18 @@ export function minutesBetween(a: Date, b: Date): number {
   return Math.max(0, Math.round((b.getTime() - a.getTime()) / 60000));
 }
 
-export function formatDateKey(key: string | Date, opts: Intl.DateTimeFormatOptions = { dateStyle: "medium" }) {
+export function formatDateKey(
+  key: string | Date,
+  opts: Intl.DateTimeFormatOptions = { dateStyle: "medium" },
+) {
   const d = typeof key === "string" ? dateKeyToDb(key) : key;
   return new Intl.DateTimeFormat("en-IN", { ...opts, timeZone: "UTC" }).format(d);
 }
 
 export function formatDateTime(d: Date, tz = appTimezone()) {
-  return new Intl.DateTimeFormat("en-IN", { dateStyle: "medium", timeStyle: "short", timeZone: tz }).format(d);
+  return new Intl.DateTimeFormat("en-IN", {
+    dateStyle: "medium",
+    timeStyle: "short",
+    timeZone: tz,
+  }).format(d);
 }

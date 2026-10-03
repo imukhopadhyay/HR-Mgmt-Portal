@@ -5,7 +5,11 @@ import { DEFAULT_ROLE_PERMISSIONS, PERMISSIONS, ROLES, type RoleKey } from "./pe
 /** Idempotently sync the permission catalog and system roles into the DB. */
 export async function syncRolesAndPermissions(prisma: PrismaClient) {
   for (const [key, description] of Object.entries(PERMISSIONS)) {
-    await prisma.permission.upsert({ where: { key }, update: { description }, create: { key, description } });
+    await prisma.permission.upsert({
+      where: { key },
+      update: { description },
+      create: { key, description },
+    });
   }
   const perms = await prisma.permission.findMany();
   const byKey = new Map(perms.map((p) => [p.key, p.id]));
@@ -16,7 +20,9 @@ export async function syncRolesAndPermissions(prisma: PrismaClient) {
       create: { key, name: meta.name, description: meta.description, isSystem: true },
     });
     const wanted = DEFAULT_ROLE_PERMISSIONS[key].map((p) => byKey.get(p)!).filter(Boolean);
-    await prisma.rolePermission.deleteMany({ where: { roleId: role.id, permissionId: { notIn: wanted } } });
+    await prisma.rolePermission.deleteMany({
+      where: { roleId: role.id, permissionId: { notIn: wanted } },
+    });
     await prisma.rolePermission.createMany({
       data: wanted.map((permissionId) => ({ roleId: role.id, permissionId })),
       skipDuplicates: true,
@@ -32,7 +38,9 @@ export async function syncRolesAndPermissions(prisma: PrismaClient) {
 export async function syncDerivedRoles(tx: Tx, employeeIds: (string | null | undefined)[]) {
   const ids = [...new Set(employeeIds.filter((x): x is string => !!x))];
   if (!ids.length) return;
-  const roles = await tx.role.findMany({ where: { key: { in: ["REPORTING_MANAGER", "DEPARTMENT_HEAD"] } } });
+  const roles = await tx.role.findMany({
+    where: { key: { in: ["REPORTING_MANAGER", "DEPARTMENT_HEAD"] } },
+  });
   const rm = roles.find((r) => r.key === "REPORTING_MANAGER");
   const dh = roles.find((r) => r.key === "DEPARTMENT_HEAD");
   const emps = await tx.employee.findMany({
@@ -40,7 +48,9 @@ export async function syncDerivedRoles(tx: Tx, employeeIds: (string | null | und
     select: {
       userId: true,
       headOfDepartment: { select: { id: true, deletedAt: true } },
-      _count: { select: { directReports: { where: { deletedAt: null, status: { not: "EXITED" } } } } },
+      _count: {
+        select: { directReports: { where: { deletedAt: null, status: { not: "EXITED" } } } },
+      },
     },
   });
   for (const e of emps) {

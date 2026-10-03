@@ -36,8 +36,13 @@ function toJson(value: unknown): Prisma.InputJsonValue | undefined {
   return JSON.parse(JSON.stringify(redact(value))) as Prisma.InputJsonValue;
 }
 
-export function computeAuditHash(prevHash: string | null, payload: Record<string, unknown>): string {
-  return createHash("sha256").update(`${prevHash ?? "GENESIS"}|${canonical(payload)}`).digest("hex");
+export function computeAuditHash(
+  prevHash: string | null,
+  payload: Record<string, unknown>,
+): string {
+  return createHash("sha256")
+    .update(`${prevHash ?? "GENESIS"}|${canonical(payload)}`)
+    .digest("hex");
 }
 
 /**
@@ -48,8 +53,11 @@ export function computeAuditHash(prevHash: string | null, payload: Record<string
 export async function writeAudit(tx: Tx, actor: AuditActor | null, entry: AuditEntry) {
   // Under REPEATABLE READ / SERIALIZABLE the snapshot predates the lock, so the
   // "latest" row could be stale and fork the chain. Require READ COMMITTED.
-  const [{ transaction_isolation: iso }] = await tx.$queryRaw<{ transaction_isolation: string }[]>`SHOW transaction_isolation`;
-  if (iso !== "read committed") throw new Error(`writeAudit requires READ COMMITTED isolation (got ${iso})`);
+  const [{ transaction_isolation: iso }] = await tx.$queryRaw<
+    { transaction_isolation: string }[]
+  >`SHOW transaction_isolation`;
+  if (iso !== "read committed")
+    throw new Error(`writeAudit requires READ COMMITTED isolation (got ${iso})`);
   await tx.$executeRaw`SELECT pg_advisory_xact_lock(727274)`;
   const last = await tx.auditLog.findFirst({ orderBy: { seq: "desc" }, select: { hash: true } });
   const createdAt = new Date();
@@ -90,7 +98,11 @@ export async function audit(actor: AuditActor | null, entry: AuditEntry) {
 }
 
 /** Re-compute the chain and report the first broken link, if any. */
-export async function verifyAuditChain(): Promise<{ ok: boolean; checked: number; brokenAtSeq?: string }> {
+export async function verifyAuditChain(): Promise<{
+  ok: boolean;
+  checked: number;
+  brokenAtSeq?: string;
+}> {
   let prev: string | null = null;
   let checked = 0;
   let cursor: bigint | undefined;

@@ -78,7 +78,10 @@ export const getSessionUser = cache(async (): Promise<SessionUser | null> => {
   if (now - session.lastSeenAt.getTime() > IDLE_REFRESH_MS) {
     const ttlMs = env().SESSION_TTL_HOURS * 60 * 60 * 1000;
     await db.session
-      .update({ where: { id: session.id }, data: { lastSeenAt: new Date(), expiresAt: new Date(now + ttlMs) } })
+      .update({
+        where: { id: session.id },
+        data: { lastSeenAt: new Date(), expiresAt: new Date(now + ttlMs) },
+      })
       .catch(() => undefined);
   }
   return buildSessionUser(session.user);

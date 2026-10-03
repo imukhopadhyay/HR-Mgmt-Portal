@@ -3,20 +3,51 @@
 import { useRef, useState } from "react";
 import { CheckCircle2, Download, FileText, Trash2, Upload, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { FormField, NativeSelect } from "@/components/shared/form-field";
 import { ConfirmAction } from "@/components/shared/confirm-action";
 import { EmptyState } from "@/components/shared/empty-state";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { useAction } from "@/hooks/use-action";
 import { humanize } from "@/lib/utils";
-import { deleteDocumentAction, uploadDocumentAction, verifyDocumentAction } from "@/server/actions/documents";
+import {
+  deleteDocumentAction,
+  uploadDocumentAction,
+  verifyDocumentAction,
+} from "@/server/actions/documents";
 
-export const DOCUMENT_CATEGORIES = ["ID_PROOF", "ADDRESS_PROOF", "EDUCATION", "EXPERIENCE", "CONTRACT", "OFFER_LETTER", "PAYSLIP", "MEDICAL", "CERTIFICATE", "RESUME", "OTHER"] as const;
+export const DOCUMENT_CATEGORIES = [
+  "ID_PROOF",
+  "ADDRESS_PROOF",
+  "EDUCATION",
+  "EXPERIENCE",
+  "CONTRACT",
+  "OFFER_LETTER",
+  "PAYSLIP",
+  "MEDICAL",
+  "CERTIFICATE",
+  "RESUME",
+  "OTHER",
+] as const;
 
 export interface DocRow {
   id: string;
@@ -33,12 +64,28 @@ function size(n: number) {
   return n > 1024 * 1024 ? `${(n / 1024 / 1024).toFixed(1)} MB` : `${Math.ceil(n / 1024)} KB`;
 }
 
-export function DocumentList({ ownerField, ownerId, docs, canUpload, canVerify }: { ownerField: "employeeId" | "candidateId"; ownerId: string; docs: DocRow[]; canUpload: boolean; canVerify: boolean }) {
+export function DocumentList({
+  ownerField,
+  ownerId,
+  docs,
+  canUpload,
+  canVerify,
+}: {
+  ownerField: "employeeId" | "candidateId";
+  ownerId: string;
+  docs: DocRow[];
+  canUpload: boolean;
+  canVerify: boolean;
+}) {
   return (
     <div className="grid gap-3">
       {canUpload && <UploadDialog ownerField={ownerField} ownerId={ownerId} />}
       {docs.length === 0 ? (
-        <EmptyState icon={FileText} title="No documents" description="Uploaded documents appear here. Files are stored privately and served only to authorised users." />
+        <EmptyState
+          icon={FileText}
+          title="No documents"
+          description="Uploaded documents appear here. Files are stored privately and served only to authorised users."
+        />
       ) : (
         <Table>
           <TableHeader>
@@ -63,7 +110,9 @@ export function DocumentList({ ownerField, ownerId, docs, canUpload, canVerify }
                   </div>
                 </TableCell>
                 <TableCell>{humanize(d.category)}</TableCell>
-                <TableCell className="hidden sm:table-cell">{new Date(d.createdAt).toLocaleDateString("en-IN")}</TableCell>
+                <TableCell className="hidden sm:table-cell">
+                  {new Date(d.createdAt).toLocaleDateString("en-IN")}
+                </TableCell>
                 <TableCell>
                   <StatusBadge status={d.verificationStatus} />
                 </TableCell>
@@ -84,7 +133,9 @@ export function DocumentList({ ownerField, ownerId, docs, canUpload, canVerify }
                           }
                           title="Mark document as verified?"
                           confirmLabel="Verify"
-                          action={(note) => verifyDocumentAction({ id: d.id, status: "VERIFIED", note })}
+                          action={(note) =>
+                            verifyDocumentAction({ id: d.id, status: "VERIFIED", note })
+                          }
                           withComment
                           commentLabel="Note (optional)"
                         />
@@ -100,7 +151,9 @@ export function DocumentList({ ownerField, ownerId, docs, canUpload, canVerify }
                           withComment
                           commentRequired
                           commentLabel="Reason"
-                          action={(note) => verifyDocumentAction({ id: d.id, status: "REJECTED", note })}
+                          action={(note) =>
+                            verifyDocumentAction({ id: d.id, status: "REJECTED", note })
+                          }
                         />
                       </>
                     )}
@@ -131,7 +184,9 @@ export function DocumentList({ ownerField, ownerId, docs, canUpload, canVerify }
 
 function UploadDialog({ ownerField, ownerId }: { ownerField: string; ownerId: string }) {
   const [open, setOpen] = useState(false);
-  const [category, setCategory] = useState<string>(ownerField === "candidateId" ? "RESUME" : "ID_PROOF");
+  const [category, setCategory] = useState<string>(
+    ownerField === "candidateId" ? "RESUME" : "ID_PROOF",
+  );
   const [confidential, setConfidential] = useState(false);
   const [error, setError] = useState<string | undefined>();
   const fileRef = useRef<HTMLInputElement>(null);
@@ -159,7 +214,9 @@ function UploadDialog({ ownerField, ownerId }: { ownerField: string; ownerId: st
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Upload document</DialogTitle>
-          <DialogDescription>PDF, PNG, JPEG, WEBP or DOCX up to 10 MB. File contents are validated.</DialogDescription>
+          <DialogDescription>
+            PDF, PNG, JPEG, WEBP or DOCX up to 10 MB. File contents are validated.
+          </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4">
           <FormField label="Category" htmlFor="doc-category">
@@ -175,7 +232,11 @@ function UploadDialog({ ownerField, ownerId }: { ownerField: string; ownerId: st
             <Input ref={fileRef} type="file" accept=".pdf,.png,.jpg,.jpeg,.webp,.docx" />
           </FormField>
           <div className="flex items-center gap-2">
-            <Checkbox id="doc-conf" checked={confidential} onCheckedChange={(v) => setConfidential(v === true)} />
+            <Checkbox
+              id="doc-conf"
+              checked={confidential}
+              onCheckedChange={(v) => setConfidential(v === true)}
+            />
             <Label htmlFor="doc-conf">Confidential (owner and HR only)</Label>
           </div>
         </div>

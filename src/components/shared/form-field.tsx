@@ -24,7 +24,11 @@ export function FormField({
     <div className={cn("grid gap-1.5", className)}>
       <Label htmlFor={htmlFor}>
         {label}
-        {required && <span className="text-destructive" aria-hidden>*</span>}
+        {required && (
+          <span className="text-destructive" aria-hidden>
+            *
+          </span>
+        )}
       </Label>
       {React.isValidElement(children)
         ? React.cloneElement(children as React.ReactElement<Record<string, unknown>>, {
@@ -51,7 +55,7 @@ export function NativeSelect({ className, ...props }: React.ComponentProps<"sele
   return (
     <select
       className={cn(
-        "border-input dark:bg-input/30 focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:border-destructive h-9 w-full rounded-md border bg-transparent px-3 text-sm shadow-xs outline-none focus-visible:ring-[3px] disabled:opacity-50 [&>option]:bg-popover",
+        "border-input dark:bg-input/30 focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:border-destructive [&>option]:bg-popover h-9 w-full rounded-md border bg-transparent px-3 text-sm shadow-xs outline-none focus-visible:ring-[3px] disabled:opacity-50",
         className,
       )}
       {...props}

@@ -50,21 +50,38 @@ export function ResetPasswordForm({ token }: { token: string }) {
     <Card>
       <CardHeader>
         <CardTitle className="text-xl">Choose a new password</CardTitle>
-        <CardDescription>At least 10 characters with upper- and lower-case letters, a number and a symbol.</CardDescription>
+        <CardDescription>
+          At least 10 characters with upper- and lower-case letters, a number and a symbol.
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={onSubmit} className="grid gap-4" noValidate>
           {error && (
-            <p role="alert" className="bg-destructive/10 text-destructive rounded-md px-3 py-2 text-sm">
+            <p
+              role="alert"
+              className="bg-destructive/10 text-destructive rounded-md px-3 py-2 text-sm"
+            >
               {error}
             </p>
           )}
           <input type="hidden" {...form.register("token")} />
-          <FormField label="New password" htmlFor="password" error={form.formState.errors.password?.message}>
+          <FormField
+            label="New password"
+            htmlFor="password"
+            error={form.formState.errors.password?.message}
+          >
             <Input type="password" autoComplete="new-password" {...form.register("password")} />
           </FormField>
-          <FormField label="Confirm password" htmlFor="confirmPassword" error={form.formState.errors.confirmPassword?.message}>
-            <Input type="password" autoComplete="new-password" {...form.register("confirmPassword")} />
+          <FormField
+            label="Confirm password"
+            htmlFor="confirmPassword"
+            error={form.formState.errors.confirmPassword?.message}
+          >
+            <Input
+              type="password"
+              autoComplete="new-password"
+              {...form.register("confirmPassword")}
+            />
           </FormField>
           <Button type="submit" disabled={pending}>
             {pending ? "Saving…" : "Update password"}

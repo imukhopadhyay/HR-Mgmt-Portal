@@ -29,7 +29,10 @@ export function MonthCalendar({ cells, today }: { cells: CalendarCell[]; today: 
   const blanks = (first + 6) % 7; // Monday-first grid
   return (
     <div>
-      <div className="text-muted-foreground mb-1 grid grid-cols-7 gap-1 text-center text-xs font-medium" aria-hidden>
+      <div
+        className="text-muted-foreground mb-1 grid grid-cols-7 gap-1 text-center text-xs font-medium"
+        aria-hidden
+      >
         {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((d) => (
           <div key={d}>{d}</div>
         ))}
@@ -46,10 +49,16 @@ export function MonthCalendar({ cells, today }: { cells: CalendarCell[]; today: 
               key={c.key}
               title={label}
               aria-label={label}
-              className={cn("flex min-h-16 flex-col rounded-md border p-1.5 text-xs sm:min-h-20", STYLE[c.status] ?? "", c.key === today && "ring-ring ring-2")}
+              className={cn(
+                "flex min-h-16 flex-col rounded-md border p-1.5 text-xs sm:min-h-20",
+                STYLE[c.status] ?? "",
+                c.key === today && "ring-ring ring-2",
+              )}
             >
               <span className="font-semibold">{day}</span>
-              <span className="hidden truncate sm:block">{c.status === "UPCOMING" ? "" : humanize(c.status)}</span>
+              <span className="hidden truncate sm:block">
+                {c.status === "UPCOMING" ? "" : humanize(c.status)}
+              </span>
               {c.checkInAt && (
                 <span className="hidden truncate opacity-80 md:block">
                   {time(c.checkInAt)}–{time(c.checkOutAt)}
@@ -61,11 +70,14 @@ export function MonthCalendar({ cells, today }: { cells: CalendarCell[]; today: 
         })}
       </ol>
       <div className="text-muted-foreground mt-3 flex flex-wrap gap-3 text-xs">
-        {["PRESENT", "HALF_DAY", "ABSENT", "ON_LEAVE", "HOLIDAY", "WEEKLY_OFF", "NOT_MARKED"].map((s) => (
-          <span key={s} className="flex items-center gap-1">
-            <span className={cn("inline-block size-3 rounded-sm border", STYLE[s])} aria-hidden /> {humanize(s)}
-          </span>
-        ))}
+        {["PRESENT", "HALF_DAY", "ABSENT", "ON_LEAVE", "HOLIDAY", "WEEKLY_OFF", "NOT_MARKED"].map(
+          (s) => (
+            <span key={s} className="flex items-center gap-1">
+              <span className={cn("inline-block size-3 rounded-sm border", STYLE[s])} aria-hidden />{" "}
+              {humanize(s)}
+            </span>
+          ),
+        )}
       </div>
     </div>
   );

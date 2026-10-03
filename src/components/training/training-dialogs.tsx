@@ -9,25 +9,66 @@ import { Pencil, Plus, Star, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { FormField, NativeSelect } from "@/components/shared/form-field";
 import { useAction } from "@/hooks/use-action";
 import { humanize } from "@/lib/utils";
-import { completionSchema, skillSchema, trainingFeedbackSchema, trainingSchema } from "@/lib/validation/training";
-import { enrollEmployeesAction, recordCompletionAction, saveSkillAction, saveTrainingAction, trainingFeedbackAction } from "@/server/actions/training";
+import {
+  completionSchema,
+  skillSchema,
+  trainingFeedbackSchema,
+  trainingSchema,
+} from "@/lib/validation/training";
+import {
+  enrollEmployeesAction,
+  recordCompletionAction,
+  saveSkillAction,
+  saveTrainingAction,
+  trainingFeedbackAction,
+} from "@/server/actions/training";
 
 type TValues = z.input<typeof trainingSchema>;
 
 export function TrainingDialog({ initial }: { initial?: TValues }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
-  const form = useForm<TValues>({ resolver: zodResolver(trainingSchema), defaultValues: initial ?? { title: "", category: "", mode: "VIRTUAL", startDate: "", endDate: "", providesCertification: false, status: "PLANNED" } });
-  const { execute, pending } = useAction(saveTrainingAction, { form, onSuccess: (r) => { setOpen(false); if (!initial) router.push(`/training/${r.id}`); } });
+  const form = useForm<TValues>({
+    resolver: zodResolver(trainingSchema),
+    defaultValues: initial ?? {
+      title: "",
+      category: "",
+      mode: "VIRTUAL",
+      startDate: "",
+      endDate: "",
+      providesCertification: false,
+      status: "PLANNED",
+    },
+  });
+  const { execute, pending } = useAction(saveTrainingAction, {
+    form,
+    onSuccess: (r) => {
+      setOpen(false);
+      if (!initial) router.push(`/training/${r.id}`);
+    },
+  });
   const e = form.formState.errors;
   const t = (n: keyof TValues, l: string, type = "text", required = false, cls = "") => (
-    <FormField label={l} htmlFor={`tr-${n}`} required={required} error={e[n]?.message} className={cls}>
+    <FormField
+      label={l}
+      htmlFor={`tr-${n}`}
+      required={required}
+      error={e[n]?.message}
+      className={cls}
+    >
       <Input type={type} {...form.register(n)} />
     </FormField>
   );
@@ -48,7 +89,12 @@ export function TrainingDialog({ initial }: { initial?: TValues }) {
         <DialogHeader>
           <DialogTitle>{initial ? "Edit programme" : "New training programme"}</DialogTitle>
         </DialogHeader>
-        <form id="tr-form" className="grid gap-4 sm:grid-cols-3" onSubmit={form.handleSubmit((v) => execute(v))} noValidate>
+        <form
+          id="tr-form"
+          className="grid gap-4 sm:grid-cols-3"
+          onSubmit={form.handleSubmit((v) => execute(v))}
+          noValidate
+        >
           {t("title", "Title", "text", true, "sm:col-span-2")}
           {t("category", "Category", "text", true)}
           {t("trainer", "Trainer / provider")}
@@ -74,10 +120,19 @@ export function TrainingDialog({ initial }: { initial?: TValues }) {
             </NativeSelect>
           </FormField>
           <div className="flex items-center gap-2 self-end pb-2">
-            <Checkbox id="tr-cert" defaultChecked={!!initial?.providesCertification} onCheckedChange={(v) => form.setValue("providesCertification", v === true)} />
+            <Checkbox
+              id="tr-cert"
+              defaultChecked={!!initial?.providesCertification}
+              onCheckedChange={(v) => form.setValue("providesCertification", v === true)}
+            />
             <Label htmlFor="tr-cert">Issues certificate</Label>
           </div>
-          <FormField label="Description" htmlFor="tr-desc" error={e.description?.message} className="sm:col-span-3">
+          <FormField
+            label="Description"
+            htmlFor="tr-desc"
+            error={e.description?.message}
+            className="sm:col-span-3"
+          >
             <Textarea rows={4} {...form.register("description")} />
           </FormField>
         </form>
@@ -91,12 +146,25 @@ export function TrainingDialog({ initial }: { initial?: TValues }) {
   );
 }
 
-export function EnrollDialog({ trainingId, employees }: { trainingId: string; employees: { id: string; label: string; dept: string }[] }) {
+export function EnrollDialog({
+  trainingId,
+  employees,
+}: {
+  trainingId: string;
+  employees: { id: string; label: string; dept: string }[];
+}) {
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState<string[]>([]);
   const [filter, setFilter] = useState("");
-  const { execute, pending } = useAction(enrollEmployeesAction, { onSuccess: () => { setOpen(false); setSelected([]); } });
-  const shown = employees.filter((e) => `${e.label} ${e.dept}`.toLowerCase().includes(filter.toLowerCase()));
+  const { execute, pending } = useAction(enrollEmployeesAction, {
+    onSuccess: () => {
+      setOpen(false);
+      setSelected([]);
+    },
+  });
+  const shown = employees.filter((e) =>
+    `${e.label} ${e.dept}`.toLowerCase().includes(filter.toLowerCase()),
+  );
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
@@ -108,11 +176,22 @@ export function EnrollDialog({ trainingId, employees }: { trainingId: string; em
         <DialogHeader>
           <DialogTitle>Enrol employees</DialogTitle>
         </DialogHeader>
-        <Input aria-label="Filter employees" placeholder="Filter by name or department" value={filter} onChange={(e) => setFilter(e.target.value)} />
+        <Input
+          aria-label="Filter employees"
+          placeholder="Filter by name or department"
+          value={filter}
+          onChange={(e) => setFilter(e.target.value)}
+        />
         <ul className="max-h-72 divide-y overflow-y-auto rounded-md border">
           {shown.map((e) => (
             <li key={e.id} className="flex items-center gap-2 px-3 py-2">
-              <Checkbox id={`en-${e.id}`} checked={selected.includes(e.id)} onCheckedChange={(v) => setSelected((s) => (v === true ? [...s, e.id] : s.filter((x) => x !== e.id)))} />
+              <Checkbox
+                id={`en-${e.id}`}
+                checked={selected.includes(e.id)}
+                onCheckedChange={(v) =>
+                  setSelected((s) => (v === true ? [...s, e.id] : s.filter((x) => x !== e.id)))
+                }
+              />
               <Label htmlFor={`en-${e.id}`} className="flex-1 font-normal">
                 {e.label} <span className="text-muted-foreground text-xs">· {e.dept}</span>
               </Label>
@@ -120,7 +199,10 @@ export function EnrollDialog({ trainingId, employees }: { trainingId: string; em
           ))}
         </ul>
         <DialogFooter>
-          <Button disabled={pending || selected.length === 0} onClick={() => execute({ trainingId, employeeIds: selected })}>
+          <Button
+            disabled={pending || selected.length === 0}
+            onClick={() => execute({ trainingId, employeeIds: selected })}
+          >
             {pending ? "Enrolling…" : `Enrol ${selected.length}`}
           </Button>
         </DialogFooter>
@@ -129,10 +211,22 @@ export function EnrollDialog({ trainingId, employees }: { trainingId: string; em
   );
 }
 
-export function CompletionDialog({ name, initial }: { name: string; initial: z.input<typeof completionSchema> }) {
+export function CompletionDialog({
+  name,
+  initial,
+}: {
+  name: string;
+  initial: z.input<typeof completionSchema>;
+}) {
   const [open, setOpen] = useState(false);
-  const form = useForm<z.input<typeof completionSchema>>({ resolver: zodResolver(completionSchema), defaultValues: initial });
-  const { execute, pending } = useAction(recordCompletionAction, { form, onSuccess: () => setOpen(false) });
+  const form = useForm<z.input<typeof completionSchema>>({
+    resolver: zodResolver(completionSchema),
+    defaultValues: initial,
+  });
+  const { execute, pending } = useAction(recordCompletionAction, {
+    form,
+    onSuccess: () => setOpen(false),
+  });
   const e = form.formState.errors;
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -145,7 +239,12 @@ export function CompletionDialog({ name, initial }: { name: string; initial: z.i
         <DialogHeader>
           <DialogTitle>Attendance & completion — {name}</DialogTitle>
         </DialogHeader>
-        <form id="cmp-form" className="grid gap-4 sm:grid-cols-3" onSubmit={form.handleSubmit((v) => execute(v))} noValidate>
+        <form
+          id="cmp-form"
+          className="grid gap-4 sm:grid-cols-3"
+          onSubmit={form.handleSubmit((v) => execute(v))}
+          noValidate
+        >
           <FormField label="Status" htmlFor="cmp-status">
             <NativeSelect {...form.register("status")}>
               {["ENROLLED", "ATTENDED", "COMPLETED", "NO_SHOW", "CANCELLED"].map((s) => (
@@ -172,10 +271,22 @@ export function CompletionDialog({ name, initial }: { name: string; initial: z.i
   );
 }
 
-export function TrainingFeedbackDialog({ enrollmentId, title }: { enrollmentId: string; title: string }) {
+export function TrainingFeedbackDialog({
+  enrollmentId,
+  title,
+}: {
+  enrollmentId: string;
+  title: string;
+}) {
   const [open, setOpen] = useState(false);
-  const form = useForm<z.input<typeof trainingFeedbackSchema>>({ resolver: zodResolver(trainingFeedbackSchema), defaultValues: { enrollmentId, rating: 4, feedback: "" } });
-  const { execute, pending } = useAction(trainingFeedbackAction, { form, onSuccess: () => setOpen(false) });
+  const form = useForm<z.input<typeof trainingFeedbackSchema>>({
+    resolver: zodResolver(trainingFeedbackSchema),
+    defaultValues: { enrollmentId, rating: 4, feedback: "" },
+  });
+  const { execute, pending } = useAction(trainingFeedbackAction, {
+    form,
+    onSuccess: () => setOpen(false),
+  });
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
@@ -187,7 +298,12 @@ export function TrainingFeedbackDialog({ enrollmentId, title }: { enrollmentId: 
         <DialogHeader>
           <DialogTitle>How effective was “{title}”?</DialogTitle>
         </DialogHeader>
-        <form id="tf-form" className="grid gap-4" onSubmit={form.handleSubmit((v) => execute(v))} noValidate>
+        <form
+          id="tf-form"
+          className="grid gap-4"
+          onSubmit={form.handleSubmit((v) => execute(v))}
+          noValidate
+        >
           <FormField label="Rating" htmlFor="tf-rating">
             <NativeSelect {...form.register("rating")}>
               {[5, 4, 3, 2, 1].map((n) => (
@@ -212,10 +328,17 @@ export function TrainingFeedbackDialog({ enrollmentId, title }: { enrollmentId: 
 }
 
 export function SkillForm() {
-  const form = useForm<z.input<typeof skillSchema>>({ resolver: zodResolver(skillSchema), defaultValues: { name: "", level: 3 } });
+  const form = useForm<z.input<typeof skillSchema>>({
+    resolver: zodResolver(skillSchema),
+    defaultValues: { name: "", level: 3 },
+  });
   const { execute, pending } = useAction(saveSkillAction, { form, onSuccess: () => form.reset() });
   return (
-    <form className="flex flex-wrap items-end gap-2" onSubmit={form.handleSubmit((v) => execute(v))} noValidate>
+    <form
+      className="flex flex-wrap items-end gap-2"
+      onSubmit={form.handleSubmit((v) => execute(v))}
+      noValidate
+    >
       <FormField label="Skill" htmlFor="sk-name" error={form.formState.errors.name?.message}>
         <Input {...form.register("name")} />
       </FormField>

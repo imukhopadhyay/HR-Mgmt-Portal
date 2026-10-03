@@ -22,19 +22,36 @@ export function StatutoryEditor({ initial }: { initial: string }) {
     }
     setError(null);
     const res = await execute(parsed);
-    if (!res.ok) setError(Object.entries(res.fieldErrors ?? {}).map(([k, v]) => `${k}: ${v?.join(", ")}`).join("; ") || res.error);
+    if (!res.ok)
+      setError(
+        Object.entries(res.fieldErrors ?? {})
+          .map(([k, v]) => `${k}: ${v?.join(", ")}`)
+          .join("; ") || res.error,
+      );
   }
   return (
     <Card>
       <CardHeader>
         <CardTitle>Edit rules</CardTitle>
-        <CardDescription>Structured JSON, validated on save. Changes apply to payroll runs processed afterwards and are audited.</CardDescription>
+        <CardDescription>
+          Structured JSON, validated on save. Changes apply to payroll runs processed afterwards and
+          are audited.
+        </CardDescription>
       </CardHeader>
       <CardContent className="grid gap-3">
         <Label htmlFor="statutory-json" className="sr-only">
           Statutory configuration JSON
         </Label>
-        <Textarea id="statutory-json" value={value} onChange={(e) => setValue(e.target.value)} rows={18} className="font-mono text-xs" spellCheck={false} aria-invalid={!!error} aria-describedby={error ? "statutory-error" : undefined} />
+        <Textarea
+          id="statutory-json"
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          rows={18}
+          className="font-mono text-xs"
+          spellCheck={false}
+          aria-invalid={!!error}
+          aria-describedby={error ? "statutory-error" : undefined}
+        />
         {error && (
           <p id="statutory-error" role="alert" className="text-destructive text-sm">
             {error}

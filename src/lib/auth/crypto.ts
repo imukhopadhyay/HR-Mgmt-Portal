@@ -9,7 +9,10 @@ export function hashPassword(password: string): Promise<string> {
   return bcrypt.hash(password, BCRYPT_ROUNDS);
 }
 
-export async function verifyPassword(password: string, hash: string | null | undefined): Promise<boolean> {
+export async function verifyPassword(
+  password: string,
+  hash: string | null | undefined,
+): Promise<boolean> {
   if (!hash) {
     await bcrypt.compare(password, DUMMY_HASH);
     return false;

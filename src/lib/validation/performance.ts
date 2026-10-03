@@ -2,7 +2,10 @@ import { z } from "zod";
 import { dateKey, optDateKey, optId, optText, reqText } from "./common";
 
 const rating = z.coerce.number().int().min(1, "1–5").max(5, "1–5");
-const optNum = z.union([z.literal(""), z.coerce.number().min(-1e12).max(1e12)]).optional().transform((v) => (v === "" || v === undefined ? undefined : v));
+const optNum = z
+  .union([z.literal(""), z.coerce.number().min(-1e12).max(1e12)])
+  .optional()
+  .transform((v) => (v === "" || v === undefined ? undefined : v));
 
 export const cycleSchema = z.object({
   id: z.string().optional(),
@@ -13,7 +16,11 @@ export const cycleSchema = z.object({
   managerReviewDue: dateKey,
 });
 
-export const selfReviewSchema = z.object({ id: z.string().min(1), selfRating: rating, selfComments: reqText(5000, "Comments") });
+export const selfReviewSchema = z.object({
+  id: z.string().min(1),
+  selfRating: rating,
+  selfComments: reqText(5000, "Comments"),
+});
 
 export const managerReviewSchema = z.object({
   id: z.string().min(1),

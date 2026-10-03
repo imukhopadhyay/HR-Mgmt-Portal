@@ -1,7 +1,17 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 
-export function EmployeeAvatar({ id, name, hasPhoto, className }: { id: string; name: string; hasPhoto?: boolean; className?: string }) {
+export function EmployeeAvatar({
+  id,
+  name,
+  hasPhoto,
+  className,
+}: {
+  id: string;
+  name: string;
+  hasPhoto?: boolean;
+  className?: string;
+}) {
   const initials = name
     .split(" ")
     .filter(Boolean)

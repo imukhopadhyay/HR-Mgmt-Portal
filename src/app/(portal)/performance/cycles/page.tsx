@@ -5,7 +5,14 @@ import { activateCycleAction, closeCycleAction } from "@/server/actions/performa
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { PageHeader } from "@/components/shared/page-header";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { EmptyState } from "@/components/shared/empty-state";
@@ -19,7 +26,11 @@ export default async function CyclesPage() {
   const cycles = await listCycles();
   return (
     <>
-      <PageHeader title="Performance cycles" description="Create a cycle, activate it to open reviews for all active employees, then close it." actions={<CycleDialog />} />
+      <PageHeader
+        title="Performance cycles"
+        description="Create a cycle, activate it to open reviews for all active employees, then close it."
+        actions={<CycleDialog />}
+      />
       <Card className="py-0">
         {cycles.length === 0 ? (
           <EmptyState title="No cycles yet" />
@@ -43,7 +54,8 @@ export default async function CyclesPage() {
                   <TableRow key={c.id}>
                     <TableCell className="font-medium">{c.name}</TableCell>
                     <TableCell>
-                      {formatDateKey(dbDateToKey(c.startDate))} – {formatDateKey(dbDateToKey(c.endDate))}
+                      {formatDateKey(dbDateToKey(c.startDate))} –{" "}
+                      {formatDateKey(dbDateToKey(c.endDate))}
                     </TableCell>
                     <TableCell>
                       <StatusBadge status={c.status} />
@@ -55,8 +67,28 @@ export default async function CyclesPage() {
                       </span>
                     </TableCell>
                     <TableCell className="text-right">
-                      {c.status === "DRAFT" && <ConfirmAction trigger={<Button size="sm">Activate</Button>} title={`Activate ${c.name}?`} description="Creates a review for every active employee and notifies them." confirmLabel="Activate" action={activateCycleAction.bind(null, c.id)} />}
-                      {c.status === "ACTIVE" && <ConfirmAction trigger={<Button size="sm" variant="outline">Close</Button>} title={`Close ${c.name}?`} description="Reviews become read-only." confirmLabel="Close cycle" action={closeCycleAction.bind(null, c.id)} />}
+                      {c.status === "DRAFT" && (
+                        <ConfirmAction
+                          trigger={<Button size="sm">Activate</Button>}
+                          title={`Activate ${c.name}?`}
+                          description="Creates a review for every active employee and notifies them."
+                          confirmLabel="Activate"
+                          action={activateCycleAction.bind(null, c.id)}
+                        />
+                      )}
+                      {c.status === "ACTIVE" && (
+                        <ConfirmAction
+                          trigger={
+                            <Button size="sm" variant="outline">
+                              Close
+                            </Button>
+                          }
+                          title={`Close ${c.name}?`}
+                          description="Reviews become read-only."
+                          confirmLabel="Close cycle"
+                          action={closeCycleAction.bind(null, c.id)}
+                        />
+                      )}
                     </TableCell>
                   </TableRow>
                 );

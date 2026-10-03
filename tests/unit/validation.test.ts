@@ -7,26 +7,66 @@ import { safeCell, toCsv } from "@/lib/export";
 
 describe("form schemas", () => {
   it("validates employee creation with field errors", () => {
-    const r = employeeCreateSchema.safeParse({ firstName: "", lastName: "X", workEmail: "bad", dateOfJoining: "2026-13-01", phone: "abc" });
+    const r = employeeCreateSchema.safeParse({
+      firstName: "",
+      lastName: "X",
+      workEmail: "bad",
+      dateOfJoining: "2026-13-01",
+      phone: "abc",
+    });
     expect(r.success).toBe(false);
     const f = r.error!.flatten().fieldErrors;
-    expect(Object.keys(f)).toEqual(expect.arrayContaining(["firstName", "workEmail", "dateOfJoining", "phone"]));
+    expect(Object.keys(f)).toEqual(
+      expect.arrayContaining(["firstName", "workEmail", "dateOfJoining", "phone"]),
+    );
   });
   it("normalises optional fields", () => {
-    const r = employeeCreateSchema.parse({ firstName: " Asha ", lastName: "Rao", workEmail: "ASHA@Example.TEST", dateOfJoining: "2026-01-05", middleName: "", managerId: "" });
+    const r = employeeCreateSchema.parse({
+      firstName: " Asha ",
+      lastName: "Rao",
+      workEmail: "ASHA@Example.TEST",
+      dateOfJoining: "2026-01-05",
+      middleName: "",
+      managerId: "",
+    });
     expect(r.firstName).toBe("Asha");
     expect(r.workEmail).toBe("asha@example.test");
     expect(r.middleName).toBeUndefined();
     expect(r.managerId).toBeUndefined();
   });
   it("validates Indian statutory identifiers", () => {
-    expect(financialInfoSchema.safeParse({ employeeId: "x", panNumber: "abcde1234f", bankIfsc: "HDFC0001234" }).success).toBe(true);
-    expect(financialInfoSchema.safeParse({ employeeId: "x", panNumber: "1234" }).success).toBe(false);
-    expect(financialInfoSchema.safeParse({ employeeId: "x", bankIfsc: "HDFC1001234" }).success).toBe(false);
+    expect(
+      financialInfoSchema.safeParse({
+        employeeId: "x",
+        panNumber: "abcde1234f",
+        bankIfsc: "HDFC0001234",
+      }).success,
+    ).toBe(true);
+    expect(financialInfoSchema.safeParse({ employeeId: "x", panNumber: "1234" }).success).toBe(
+      false,
+    );
+    expect(
+      financialInfoSchema.safeParse({ employeeId: "x", bankIfsc: "HDFC1001234" }).success,
+    ).toBe(false);
   });
   it("validates leave applications", () => {
-    expect(leaveApplySchema.safeParse({ leaveTypeId: "", startDate: "2026-01-01", endDate: "2026-01-01", reason: "" }).success).toBe(false);
-    expect(leaveApplySchema.parse({ leaveTypeId: "t", startDate: "2026-01-01", endDate: "2026-01-01", reason: "x", halfDay: "" }).halfDay).toBeUndefined();
+    expect(
+      leaveApplySchema.safeParse({
+        leaveTypeId: "",
+        startDate: "2026-01-01",
+        endDate: "2026-01-01",
+        reason: "",
+      }).success,
+    ).toBe(false);
+    expect(
+      leaveApplySchema.parse({
+        leaveTypeId: "t",
+        startDate: "2026-01-01",
+        endDate: "2026-01-01",
+        reason: "x",
+        halfDay: "",
+      }).halfDay,
+    ).toBeUndefined();
   });
   it("accepts default statutory config and rejects malformed slabs", () => {
     expect(statutoryConfigSchema.safeParse(DEFAULT_STATUTORY_CONFIG).success).toBe(true);

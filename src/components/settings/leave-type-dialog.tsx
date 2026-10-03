@@ -8,7 +8,14 @@ import { Pencil, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { FormField, NativeSelect } from "@/components/shared/form-field";
 import { useAction } from "@/hooks/use-action";
@@ -36,12 +43,25 @@ const DEFAULTS: Values = {
 
 export function LeaveTypeDialog({ initial }: { initial?: Values }) {
   const [open, setOpen] = useState(false);
-  const form = useForm<Values>({ resolver: zodResolver(leaveTypeSchema), defaultValues: initial ?? DEFAULTS });
-  const { execute, pending } = useAction(saveLeaveTypeAction, { form, onSuccess: () => setOpen(false) });
+  const form = useForm<Values>({
+    resolver: zodResolver(leaveTypeSchema),
+    defaultValues: initial ?? DEFAULTS,
+  });
+  const { execute, pending } = useAction(saveLeaveTypeAction, {
+    form,
+    onSuccess: () => setOpen(false),
+  });
   const e = form.formState.errors;
-  const flag = (name: "isPaid" | "allowHalfDay" | "allowNegativeBalance" | "isActive", label: string) => (
+  const flag = (
+    name: "isPaid" | "allowHalfDay" | "allowNegativeBalance" | "isActive",
+    label: string,
+  ) => (
     <div className="flex items-center gap-2">
-      <Checkbox id={`lt-${name}`} defaultChecked={!!form.getValues(name)} onCheckedChange={(v) => form.setValue(name, v === true)} />
+      <Checkbox
+        id={`lt-${name}`}
+        defaultChecked={!!form.getValues(name)}
+        onCheckedChange={(v) => form.setValue(name, v === true)}
+      />
       <Label htmlFor={`lt-${name}`}>{label}</Label>
     </div>
   );
@@ -62,14 +82,29 @@ export function LeaveTypeDialog({ initial }: { initial?: Values }) {
         <DialogHeader>
           <DialogTitle>{initial ? "Edit leave type" : "New leave type"}</DialogTitle>
         </DialogHeader>
-        <form id="lt-form" className="grid gap-4 sm:grid-cols-3" onSubmit={form.handleSubmit((v) => execute(v))} noValidate>
+        <form
+          id="lt-form"
+          className="grid gap-4 sm:grid-cols-3"
+          onSubmit={form.handleSubmit((v) => execute(v))}
+          noValidate
+        >
           <FormField label="Code" htmlFor="lt-code" required error={e.code?.message}>
             <Input {...form.register("code")} />
           </FormField>
-          <FormField label="Name" htmlFor="lt-name" required error={e.name?.message} className="sm:col-span-2">
+          <FormField
+            label="Name"
+            htmlFor="lt-name"
+            required
+            error={e.name?.message}
+            className="sm:col-span-2"
+          >
             <Input {...form.register("name")} />
           </FormField>
-          <FormField label="Annual entitlement (days)" htmlFor="lt-ent" error={e.annualEntitlement?.message}>
+          <FormField
+            label="Annual entitlement (days)"
+            htmlFor="lt-ent"
+            error={e.annualEntitlement?.message}
+          >
             <Input type="number" step="0.5" {...form.register("annualEntitlement")} />
           </FormField>
           <FormField label="Accrual" htmlFor="lt-acc" error={e.accrual?.message}>
@@ -79,19 +114,40 @@ export function LeaveTypeDialog({ initial }: { initial?: Values }) {
               <option value="NONE">None</option>
             </NativeSelect>
           </FormField>
-          <FormField label="Carry-forward limit" htmlFor="lt-cf" error={e.carryForwardLimit?.message}>
+          <FormField
+            label="Carry-forward limit"
+            htmlFor="lt-cf"
+            error={e.carryForwardLimit?.message}
+          >
             <Input type="number" step="0.5" {...form.register("carryForwardLimit")} />
           </FormField>
-          <FormField label="Max consecutive days" htmlFor="lt-max" error={e.maxConsecutiveDays?.message}>
+          <FormField
+            label="Max consecutive days"
+            htmlFor="lt-max"
+            error={e.maxConsecutiveDays?.message}
+          >
             <Input type="number" {...form.register("maxConsecutiveDays")} />
           </FormField>
-          <FormField label="Minimum notice (days)" htmlFor="lt-notice" error={e.minNoticeDays?.message}>
+          <FormField
+            label="Minimum notice (days)"
+            htmlFor="lt-notice"
+            error={e.minNoticeDays?.message}
+          >
             <Input type="number" {...form.register("minNoticeDays")} />
           </FormField>
-          <FormField label="Document required after (days)" htmlFor="lt-doc" error={e.documentRequiredAfterDays?.message}>
+          <FormField
+            label="Document required after (days)"
+            htmlFor="lt-doc"
+            error={e.documentRequiredAfterDays?.message}
+          >
             <Input type="number" {...form.register("documentRequiredAfterDays")} />
           </FormField>
-          <FormField label="Approval levels" htmlFor="lt-levels" error={e.approvalLevels?.message} hint="1 = manager; 2 = manager then HR">
+          <FormField
+            label="Approval levels"
+            htmlFor="lt-levels"
+            error={e.approvalLevels?.message}
+            hint="1 = manager; 2 = manager then HR"
+          >
             <NativeSelect {...form.register("approvalLevels")}>
               <option value={1}>1</option>
               <option value={2}>2</option>

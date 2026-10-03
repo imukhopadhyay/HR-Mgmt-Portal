@@ -43,13 +43,18 @@ export interface LeaveValidationInput {
 export function validateLeaveApplication(i: LeaveValidationInput): Record<string, string> {
   const errors: Record<string, string> = {};
   if (i.endKey < i.startKey) errors.endDate = "End date must be on or after the start date";
-  if (i.startKey.slice(0, 4) !== i.endKey.slice(0, 4)) errors.endDate = "Split leave that spans two calendar years into two requests";
-  if (i.halfDay && i.startKey !== i.endKey) errors.halfDay = "Half-day leave must start and end on the same day";
-  if (i.halfDay && !i.policy.allowHalfDay) errors.halfDay = "This leave type does not allow half days";
-  if (!errors.endDate && i.days <= 0) errors.startDate = "The selected dates contain no working days";
+  if (i.startKey.slice(0, 4) !== i.endKey.slice(0, 4))
+    errors.endDate = "Split leave that spans two calendar years into two requests";
+  if (i.halfDay && i.startKey !== i.endKey)
+    errors.halfDay = "Half-day leave must start and end on the same day";
+  if (i.halfDay && !i.policy.allowHalfDay)
+    errors.halfDay = "This leave type does not allow half days";
+  if (!errors.endDate && i.days <= 0)
+    errors.startDate = "The selected dates contain no working days";
   if (!i.isAdminEntry && i.policy.minNoticeDays > 0) {
     const notice = Math.round((Date.parse(i.startKey) - Date.parse(i.todayKey)) / 86400000);
-    if (notice < i.policy.minNoticeDays) errors.startDate = `Apply at least ${i.policy.minNoticeDays} day(s) in advance`;
+    if (notice < i.policy.minNoticeDays)
+      errors.startDate = `Apply at least ${i.policy.minNoticeDays} day(s) in advance`;
   }
   if (i.policy.maxConsecutiveDays && i.days > i.policy.maxConsecutiveDays) {
     errors.endDate = `At most ${i.policy.maxConsecutiveDays} consecutive day(s) allowed for this leave type`;
@@ -60,7 +65,13 @@ export function validateLeaveApplication(i: LeaveValidationInput): Record<string
   return errors;
 }
 
-export function availableBalance(b: { entitled: number; carriedForward: number; adjusted: number; used: number; pending: number }) {
+export function availableBalance(b: {
+  entitled: number;
+  carriedForward: number;
+  adjusted: number;
+  used: number;
+  pending: number;
+}) {
   return Math.round((b.entitled + b.carriedForward + b.adjusted - b.used - b.pending) * 2) / 2;
 }
 

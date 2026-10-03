@@ -1,11 +1,38 @@
 import { describe, expect, it } from "vitest";
-import { annualIncomeTax, calculatePayroll, professionalTax, taxFromSlabs, type StructureLine } from "@/lib/payroll-engine";
+import {
+  annualIncomeTax,
+  calculatePayroll,
+  professionalTax,
+  taxFromSlabs,
+  type StructureLine,
+} from "@/lib/payroll-engine";
 import { DEFAULT_STATUTORY_CONFIG as cfg } from "@/lib/settings-defaults";
 
 const lines: StructureLine[] = [
-  { code: "BASIC", name: "Basic", type: "EARNING", calcType: "PERCENT_OF_CTC", value: 40, isTaxable: true },
-  { code: "HRA", name: "HRA", type: "EARNING", calcType: "PERCENT_OF_BASIC", value: 50, isTaxable: true },
-  { code: "SPECIAL", name: "Special", type: "EARNING", calcType: "FIXED", value: 10000, isTaxable: true },
+  {
+    code: "BASIC",
+    name: "Basic",
+    type: "EARNING",
+    calcType: "PERCENT_OF_CTC",
+    value: 40,
+    isTaxable: true,
+  },
+  {
+    code: "HRA",
+    name: "HRA",
+    type: "EARNING",
+    calcType: "PERCENT_OF_BASIC",
+    value: 50,
+    isTaxable: true,
+  },
+  {
+    code: "SPECIAL",
+    name: "Special",
+    type: "EARNING",
+    calcType: "FIXED",
+    value: 10000,
+    isTaxable: true,
+  },
 ];
 
 describe("tax", () => {
@@ -32,7 +59,15 @@ describe("professional tax", () => {
 
 describe("calculatePayroll", () => {
   it("computes a full month", () => {
-    const r = calculatePayroll({ annualCtc: 1200000, lines, daysInMonth: 30, employedDays: 30, lopDays: 0, state: "Karnataka", config: cfg });
+    const r = calculatePayroll({
+      annualCtc: 1200000,
+      lines,
+      daysInMonth: 30,
+      employedDays: 30,
+      lopDays: 0,
+      state: "Karnataka",
+      config: cfg,
+    });
     // basic 40,000; HRA 20,000; special 10,000
     expect(r.gross).toBe(70000);
     expect(r.deductions.find((d) => d.code === "PF")?.amount).toBe(1800); // 12% of 15,000 ceiling
@@ -42,23 +77,63 @@ describe("calculatePayroll", () => {
     expect(r.paidDays).toBe(30);
   });
   it("prorates for LOP", () => {
-    const r = calculatePayroll({ annualCtc: 1200000, lines, daysInMonth: 30, employedDays: 30, lopDays: 3, config: cfg });
+    const r = calculatePayroll({
+      annualCtc: 1200000,
+      lines,
+      daysInMonth: 30,
+      employedDays: 30,
+      lopDays: 3,
+      config: cfg,
+    });
     expect(r.paidDays).toBe(27);
     expect(r.gross).toBe(63000);
   });
   it("applies ESI below the threshold", () => {
-    const small: StructureLine[] = [{ code: "BASIC", name: "Basic", type: "EARNING", calcType: "FIXED", value: 15000, isTaxable: true }];
-    const r = calculatePayroll({ annualCtc: 250000, lines: small, daysInMonth: 30, employedDays: 30, lopDays: 0, config: cfg });
+    const small: StructureLine[] = [
+      {
+        code: "BASIC",
+        name: "Basic",
+        type: "EARNING",
+        calcType: "FIXED",
+        value: 15000,
+        isTaxable: true,
+      },
+    ];
+    const r = calculatePayroll({
+      annualCtc: 250000,
+      lines: small,
+      daysInMonth: 30,
+      employedDays: 30,
+      lopDays: 0,
+      config: cfg,
+    });
     expect(r.deductions.find((d) => d.code === "ESI")?.amount).toBe(Math.ceil(15000 * 0.0075));
-    expect(r.employerContributions.find((d) => d.code === "ESI_ER")?.amount).toBe(Math.ceil(15000 * 0.0325));
+    expect(r.employerContributions.find((d) => d.code === "ESI_ER")?.amount).toBe(
+      Math.ceil(15000 * 0.0325),
+    );
   });
   it("respects PF opt-out and disabled rules", () => {
-    const r = calculatePayroll({ annualCtc: 1200000, lines, daysInMonth: 30, employedDays: 30, lopDays: 0, pfOptedOut: true, config: { ...cfg, tds: { ...cfg.tds, enabled: false } } });
+    const r = calculatePayroll({
+      annualCtc: 1200000,
+      lines,
+      daysInMonth: 30,
+      employedDays: 30,
+      lopDays: 0,
+      pfOptedOut: true,
+      config: { ...cfg, tds: { ...cfg.tds, enabled: false } },
+    });
     expect(r.deductions.find((d) => d.code === "PF")).toBeUndefined();
     expect(r.deductions.find((d) => d.code === "TDS")).toBeUndefined();
   });
   it("never produces negative pay", () => {
-    const r = calculatePayroll({ annualCtc: 1200000, lines, daysInMonth: 30, employedDays: 30, lopDays: 40, config: cfg });
+    const r = calculatePayroll({
+      annualCtc: 1200000,
+      lines,
+      daysInMonth: 30,
+      employedDays: 30,
+      lopDays: 40,
+      config: cfg,
+    });
     expect(r.gross).toBe(0);
     expect(r.net).toBe(0);
   });

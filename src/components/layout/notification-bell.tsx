@@ -28,7 +28,12 @@ export function NotificationBell({ unread, items }: { unread: number; items: Bel
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className="relative" aria-label={`Notifications (${unread} unread)`}>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="relative"
+          aria-label={`Notifications (${unread} unread)`}
+        >
           <Bell />
           {unread > 0 && (
             <span className="bg-destructive absolute top-1 right-1 flex min-w-4 items-center justify-center rounded-full px-1 text-[10px] leading-4 font-semibold text-white">
@@ -41,17 +46,28 @@ export function NotificationBell({ unread, items }: { unread: number; items: Bel
         <div className="flex items-center justify-between">
           <DropdownMenuLabel>Notifications</DropdownMenuLabel>
           {unread > 0 && (
-            <Button variant="link" size="sm" className="h-auto px-2 text-xs" onClick={() => execute(undefined)}>
+            <Button
+              variant="link"
+              size="sm"
+              className="h-auto px-2 text-xs"
+              onClick={() => execute(undefined)}
+            >
               Mark all read
             </Button>
           )}
         </div>
         <DropdownMenuSeparator />
-        {items.length === 0 && <p className="text-muted-foreground px-2 py-6 text-center text-sm">No notifications yet.</p>}
+        {items.length === 0 && (
+          <p className="text-muted-foreground px-2 py-6 text-center text-sm">
+            No notifications yet.
+          </p>
+        )}
         {items.map((n) => (
           <DropdownMenuItem key={n.id} asChild className="items-start">
             <Link href={n.link ?? "/notifications"} className="flex flex-col items-start gap-0.5">
-              <span className={n.read ? "text-muted-foreground text-sm" : "text-sm font-medium"}>{n.title}</span>
+              <span className={n.read ? "text-muted-foreground text-sm" : "text-sm font-medium"}>
+                {n.title}
+              </span>
               <span className="text-muted-foreground line-clamp-2 text-xs">{n.body}</span>
             </Link>
           </DropdownMenuItem>

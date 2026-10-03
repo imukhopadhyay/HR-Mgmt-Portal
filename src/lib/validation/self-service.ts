@@ -12,9 +12,21 @@ export const profileUpdateSchema = z
     postalCode: optText(10),
     reason: optText(500),
   })
-  .refine((v) => Object.entries(v).some(([k, val]) => k !== "reason" && val !== undefined), { message: "Change at least one field", path: ["phone"] });
+  .refine((v) => Object.entries(v).some(([k, val]) => k !== "reason" && val !== undefined), {
+    message: "Change at least one field",
+    path: ["phone"],
+  });
 
-export const TICKET_CATEGORIES = ["Payroll", "Leave", "Attendance", "Documents", "Benefits", "IT access", "Policy question", "Other"] as const;
+export const TICKET_CATEGORIES = [
+  "Payroll",
+  "Leave",
+  "Attendance",
+  "Documents",
+  "Benefits",
+  "IT access",
+  "Policy question",
+  "Other",
+] as const;
 
 export const ticketSchema = z.object({
   category: z.enum(TICKET_CATEGORIES),
@@ -26,7 +38,10 @@ export const ticketSchema = z.object({
 export const ticketUpdateSchema = z.object({
   id: z.string().min(1),
   status: z.enum(["OPEN", "IN_PROGRESS", "RESOLVED", "CLOSED"]),
-  assigneeId: z.string().optional().transform((v) => v || undefined),
+  assigneeId: z
+    .string()
+    .optional()
+    .transform((v) => v || undefined),
   resolution: optText(4000),
 });
 

@@ -2,7 +2,10 @@ import { z } from "zod";
 import { dateKey, email, optDateKey, optId, optPhone, optText, reqText } from "./common";
 
 const optNum = (min: number, max: number) =>
-  z.union([z.literal(""), z.coerce.number().min(min).max(max)]).optional().transform((v) => (v === "" || v === undefined ? undefined : v));
+  z
+    .union([z.literal(""), z.coerce.number().min(min).max(max)])
+    .optional()
+    .transform((v) => (v === "" || v === undefined ? undefined : v));
 
 export const requisitionSchema = z.object({
   id: z.string().optional(),

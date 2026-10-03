@@ -16,8 +16,13 @@ describe("upload validation", () => {
   });
   it("rejects spoofed extensions and unknown content", () => {
     expect(validateUpload({ name: "cv.pdf", size: 100 }, PNG).ok).toBe(false);
-    expect(validateUpload({ name: "x.pdf", size: 100 }, new TextEncoder().encode("<script>")).ok).toBe(false);
-    expect(validateUpload({ name: "doc.pdf", size: 100 }, PDF)).toMatchObject({ ok: true, mime: "application/pdf" });
+    expect(
+      validateUpload({ name: "x.pdf", size: 100 }, new TextEncoder().encode("<script>")).ok,
+    ).toBe(false);
+    expect(validateUpload({ name: "doc.pdf", size: 100 }, PDF)).toMatchObject({
+      ok: true,
+      mime: "application/pdf",
+    });
   });
   it("enforces size limits", () => {
     expect(validateUpload({ name: "a.pdf", size: 0 }, PDF).ok).toBe(false);
@@ -32,7 +37,9 @@ describe("upload validation", () => {
 
 describe("secrets handling", () => {
   it("redacts sensitive keys recursively", () => {
-    expect(redact({ email: "a@b", password: "x", nested: { panNumber: "ABCDE1234F", ok: 1 } })).toEqual({ email: "a@b", password: "[REDACTED]", nested: { panNumber: "[REDACTED]", ok: 1 } });
+    expect(
+      redact({ email: "a@b", password: "x", nested: { panNumber: "ABCDE1234F", ok: 1 } }),
+    ).toEqual({ email: "a@b", password: "[REDACTED]", nested: { panNumber: "[REDACTED]", ok: 1 } });
   });
   it("hashes tokens with a key and compares in constant time", () => {
     const a = hashToken("token", "x".repeat(32));
@@ -68,7 +75,9 @@ describe("RBAC catalog", () => {
   });
   it("resolves the widest scope", () => {
     expect(resolveScope(new Set(DEFAULT_ROLE_PERMISSIONS.REPORTING_MANAGER), "leave")).toBe("team");
-    expect(resolveScope(new Set(DEFAULT_ROLE_PERMISSIONS.DEPARTMENT_HEAD), "leave")).toBe("department");
+    expect(resolveScope(new Set(DEFAULT_ROLE_PERMISSIONS.DEPARTMENT_HEAD), "leave")).toBe(
+      "department",
+    );
     expect(resolveScope(new Set(DEFAULT_ROLE_PERMISSIONS.HR_MANAGER), "leave")).toBe("all");
     expect(resolveScope(new Set(DEFAULT_ROLE_PERMISSIONS.EMPLOYEE), "leave")).toBe("self");
   });

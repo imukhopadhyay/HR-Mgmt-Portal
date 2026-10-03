@@ -13,7 +13,11 @@ export function initials(p: { firstName: string; lastName: string }) {
   return `${p.firstName[0] ?? ""}${p.lastName[0] ?? ""}`.toUpperCase();
 }
 
-const inr = new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 2 });
+const inr = new Intl.NumberFormat("en-IN", {
+  style: "currency",
+  currency: "INR",
+  maximumFractionDigits: 2,
+});
 export function formatINR(value: number | string | { toString(): string } | null | undefined) {
   if (value === null || value === undefined) return "—";
   return inr.format(Number(value.toString()));

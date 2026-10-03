@@ -17,9 +17,19 @@ export interface PtSlab {
 }
 
 export interface StatutoryConfig {
-  pf: { enabled: boolean; employeeRate: number; employerRate: number; wageCeiling: number; applyCeiling: boolean };
+  pf: {
+    enabled: boolean;
+    employeeRate: number;
+    employerRate: number;
+    wageCeiling: number;
+    applyCeiling: boolean;
+  };
   esi: { enabled: boolean; employeeRate: number; employerRate: number; grossThreshold: number };
-  professionalTax: { enabled: boolean; defaultSlabs: PtSlab[]; stateSlabs: Record<string, PtSlab[]> };
+  professionalTax: {
+    enabled: boolean;
+    defaultSlabs: PtSlab[];
+    stateSlabs: Record<string, PtSlab[]>;
+  };
   tds: {
     enabled: boolean;
     regime: "NEW";

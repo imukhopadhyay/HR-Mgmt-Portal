@@ -50,7 +50,10 @@ export const optEmail = z
   .transform((v) => (v ? v.toLowerCase() : undefined))
   .pipe(email.optional());
 
-export const money = z.coerce.number({ invalid_type_error: "Enter an amount" }).min(0, "Must be zero or more").max(1e11);
+export const money = z.coerce
+  .number({ invalid_type_error: "Enter an amount" })
+  .min(0, "Must be zero or more")
+  .max(1e11);
 
 export const pagination = z.object({
   page: z.coerce.number().int().min(1).default(1),

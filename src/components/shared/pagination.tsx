@@ -25,7 +25,10 @@ export function Pagination({
   const from = total === 0 ? 0 : (page - 1) * pageSize + 1;
   const to = Math.min(total, page * pageSize);
   return (
-    <nav aria-label="Pagination" className="flex items-center justify-between gap-2 px-1 pt-3 text-sm">
+    <nav
+      aria-label="Pagination"
+      className="flex items-center justify-between gap-2 px-1 pt-3 text-sm"
+    >
       <span className="text-muted-foreground">
         {from}–{to} of {total}
       </span>

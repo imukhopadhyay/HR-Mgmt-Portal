@@ -6,7 +6,8 @@ import { buildSessionUser, sessionUserInclude } from "@/lib/auth/session-user";
 import { hashPassword } from "@/lib/auth/crypto";
 
 let n = 0;
-const uid = () => `${Date.now().toString(36)}${(n++).toString(36)}${Math.random().toString(36).slice(2, 6)}`;
+const uid = () =>
+  `${Date.now().toString(36)}${(n++).toString(36)}${Math.random().toString(36).slice(2, 6)}`;
 export const PASSWORD = "Str0ng!Password";
 let pwHash: string | undefined;
 
@@ -14,17 +15,9 @@ export async function makeDepartment(name = `Dept ${uid()}`) {
   return db.department.create({ data: { code: `D${uid()}`.slice(0, 12).toUpperCase(), name } });
 }
 
+/** Base data (default shift, leave types) is created once in global-setup.ts. */
 export async function ensureBaseData() {
-  let shift = await db.shift.findFirst({ where: { isDefault: true } });
-  shift ??= await db.shift.create({ data: { name: `General ${uid()}`, startTime: "09:30", endTime: "18:30", graceMinutes: 15, fullDayMinutes: 450, halfDayMinutes: 240, weeklyOffs: [0, 6], isDefault: true } });
-  const types: Record<string, Parameters<typeof db.leaveType.create>[0]["data"]> = {
-    CL: { code: "CL", name: "Casual Leave", annualEntitlement: 12, approvalLevels: 1 },
-    EL: { code: "EL", name: "Earned Leave", annualEntitlement: 15, approvalLevels: 2 },
-    LWP: { code: "LWP", name: "Unpaid Leave", annualEntitlement: 0, accrual: "NONE", isPaid: false, allowNegativeBalance: true, approvalLevels: 1 },
-  };
-  for (const [code, data] of Object.entries(types)) {
-    await db.leaveType.upsert({ where: { code }, update: {}, create: data });
-  }
+  const shift = await db.shift.findFirstOrThrow({ where: { isDefault: true } });
   return { shift };
 }
 
@@ -35,12 +28,22 @@ export interface MadePerson {
   actor: () => Promise<Actor>;
 }
 
-export async function makePerson(opts: { roles?: RoleKey[]; managerId?: string; departmentId?: string; joined?: string; state?: string } = {}): Promise<MadePerson> {
+export async function makePerson(
+  opts: {
+    roles?: RoleKey[];
+    managerId?: string;
+    departmentId?: string;
+    joined?: string;
+    state?: string;
+  } = {},
+): Promise<MadePerson> {
   pwHash ??= await hashPassword(PASSWORD);
   const { shift } = await ensureBaseData();
   const email = `user-${uid()}@example.test`;
   const roles = await db.role.findMany({ where: { key: { in: opts.roles ?? ["EMPLOYEE"] } } });
-  const user = await db.user.create({ data: { email, passwordHash: pwHash, roles: { create: roles.map((r) => ({ roleId: r.id })) } } });
+  const user = await db.user.create({
+    data: { email, passwordHash: pwHash, roles: { create: roles.map((r) => ({ roleId: r.id })) } },
+  });
   const emp = await db.employee.create({
     data: {
       employeeCode: `T-${uid()}`,

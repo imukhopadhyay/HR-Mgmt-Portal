@@ -11,7 +11,10 @@ export default async function OrgChartPage() {
   const roots = await orgTree();
   return (
     <>
-      <PageHeader title="Organisation chart" description="Reporting hierarchy of current employees. Expand or collapse teams." />
+      <PageHeader
+        title="Organisation chart"
+        description="Reporting hierarchy of current employees. Expand or collapse teams."
+      />
       <Card>
         <CardContent className="overflow-x-auto">
           <OrgChart roots={roots} />

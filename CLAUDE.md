@@ -28,8 +28,11 @@ npm run test:integration # service tests against TEST_DATABASE_URL (database is 
 npm run test:e2e         # Playwright (needs a seeded dev DB + running/buildable app)
 npm run db:migrate       # create/apply a dev migration (prisma migrate dev)
 npm run db:deploy        # apply migrations (CI/staging/production)
-npm run db:seed          # synthetic demo data (refuses to run on a non-empty DB)
-npm run db:reset         # drop + migrate + seed (DEV ONLY)
+npm run db:seed          # synthetic demo data (skips a non-empty DB); runs tsx with --conditions=react-server
+npm run db:reset         # drop + migrate + seed (DEV ONLY — Prisma requires explicit human consent)
+scripts/bootstrap.ts     # first-run setup for staging/production (no demo data)
+scripts/backup.sh / restore.sh   # logical backups; restore only into an empty database
+node scripts/smoke-pages.mjs <outDir> <email> /path…   # screenshot + console-error smoke check
 npm run build            # prisma generate + next build
 ```
 
@@ -71,6 +74,13 @@ Rules:
    Business timezone is `APP_TIMEZONE` (default Asia/Kolkata).
 7. Money is `Decimal(14,2)`; convert with `toNumber()` and round with `round2()` only at the edges.
 8. Soft-delete business records (`deletedAt`); always filter `deletedAt: null`.
+9. **Transactions that call `writeAudit` must run at READ COMMITTED** (the default). Never use
+   `Serializable`/`RepeatableRead` there — the snapshot would predate the audit advisory lock and fork
+   the hash chain (`writeAudit` throws if violated). Serialise competing writes with row locks
+   (`SELECT … FOR UPDATE`) or conditional `updateMany` "claims" on the expected state instead.
+10. Never pass functions from Server to Client Components. For confirm dialogs pass a bound server
+    action: `action={someAction.bind(null, id)}`.
+11. Recharts discovers axes by scanning direct children — don't wrap `<XAxis>`/`<YAxis>` in fragments.
 
 ## RBAC
 
@@ -112,6 +122,12 @@ Rules:
   All forms use React Hook Form + `zodResolver` + `useAction` (toasts + field error mapping).
 - Accessibility: label every input (`FormField`), use semantic tables, keep focus states, dialogs via Radix.
 - Add/adjust tests with every business-rule change (unit for pure logic, integration for services).
+
+## Testing notes
+
+- Integration tests create a uniquely named schema in `TEST_DATABASE_URL` per run and drop it afterwards.
+- E2E tests authenticate once per role (`tests/e2e/auth.setup.ts`) — logging in per test trips the
+  login rate limits. They expect the synthetic seed and are written to be repeatable.
 
 ## Assumptions (documented defaults)
 

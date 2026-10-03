@@ -12,7 +12,9 @@ import { createRunAction } from "@/server/actions/payroll";
 export function NewRunForm({ defaultMonth }: { defaultMonth: string }) {
   const router = useRouter();
   const [month, setMonth] = useState(defaultMonth);
-  const { execute, pending } = useAction(createRunAction, { onSuccess: (r) => router.push(`/payroll/${r.id}`) });
+  const { execute, pending } = useAction(createRunAction, {
+    onSuccess: (r) => router.push(`/payroll/${r.id}`),
+  });
   return (
     <form
       className="flex items-end gap-2"
@@ -24,7 +26,14 @@ export function NewRunForm({ defaultMonth }: { defaultMonth: string }) {
     >
       <div className="grid gap-1.5">
         <Label htmlFor="run-month">Payroll month</Label>
-        <Input id="run-month" type="month" value={month} max={defaultMonth} onChange={(e) => setMonth(e.target.value)} className="w-44" />
+        <Input
+          id="run-month"
+          type="month"
+          value={month}
+          max={defaultMonth}
+          onChange={(e) => setMonth(e.target.value)}
+          className="w-44"
+        />
       </div>
       <Button type="submit" disabled={pending || !month}>
         <Plus /> {pending ? "Creating…" : "New payroll run"}

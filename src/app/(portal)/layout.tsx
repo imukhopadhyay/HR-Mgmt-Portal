@@ -16,17 +16,27 @@ import { QuickActions } from "@/components/layout/quick-actions";
 export default async function PortalLayout({ children }: { children: React.ReactNode }) {
   const user = await requireUser();
   const pathname = (await headers()).get("x-pathname") ?? "";
-  if (user.mustChangePassword && !pathname.startsWith("/account/password")) redirect("/account/password?required=1");
+  if (user.mustChangePassword && !pathname.startsWith("/account/password"))
+    redirect("/account/password?required=1");
 
-  const allowed = visibleNav(user.permissions, !!user.employeeId).flatMap((g) => g.items.map((i) => i.href));
+  const allowed = visibleNav(user.permissions, !!user.employeeId).flatMap((g) =>
+    g.items.map((i) => i.href),
+  );
   const [unread, latest] = await Promise.all([
     db.notification.count({ where: { userId: user.id, readAt: null } }),
-    db.notification.findMany({ where: { userId: user.id }, orderBy: { createdAt: "desc" }, take: 6 }),
+    db.notification.findMany({
+      where: { userId: user.id },
+      orderBy: { createdAt: "desc" },
+      take: 6,
+    }),
   ]);
 
   return (
     <div className="flex min-h-dvh">
-      <a href="#main" className="focus:bg-primary focus:text-primary-foreground sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:rounded focus:px-3 focus:py-2">
+      <a
+        href="#main"
+        className="focus:bg-primary focus:text-primary-foreground sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:rounded focus:px-3 focus:py-2"
+      >
         Skip to content
       </a>
       <aside className="bg-sidebar border-sidebar-border sticky top-0 hidden h-dvh w-64 shrink-0 flex-col border-r lg:flex">
@@ -48,9 +58,21 @@ export default async function PortalLayout({ children }: { children: React.React
           <ThemeToggle />
           <NotificationBell
             unread={unread}
-            items={latest.map((n) => ({ id: n.id, title: n.title, body: n.body, link: n.link, createdAt: n.createdAt.toISOString(), read: !!n.readAt }))}
+            items={latest.map((n) => ({
+              id: n.id,
+              title: n.title,
+              body: n.body,
+              link: n.link,
+              createdAt: n.createdAt.toISOString(),
+              read: !!n.readAt,
+            }))}
           />
-          <UserMenu name={user.name} email={user.email} roles={user.roles.map((r) => ROLES[r]?.name ?? r)} hasEmployee={!!user.employeeId} />
+          <UserMenu
+            name={user.name}
+            email={user.email}
+            roles={user.roles.map((r) => ROLES[r]?.name ?? r)}
+            hasEmployee={!!user.employeeId}
+          />
         </header>
         <main id="main" className="mx-auto w-full max-w-7xl flex-1 space-y-6 p-4 sm:p-6">
           {children}

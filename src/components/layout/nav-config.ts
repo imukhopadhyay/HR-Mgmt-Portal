@@ -63,9 +63,24 @@ export const NAV: NavGroup[] = [
   {
     label: "Team & approvals",
     items: [
-      { title: "Approvals", href: "/approvals", icon: ClipboardCheck, anyOf: ["leave:approve", "attendance:approve", "request:manage"] },
-      { title: "Team attendance", href: "/attendance/team", icon: CalendarCheck, anyOf: ["attendance:read:team", "attendance:read:department", "attendance:read:all"] },
-      { title: "Leave calendar", href: "/leave/calendar", icon: CalendarDays, anyOf: ["leave:read:team", "leave:read:department", "leave:read:all"] },
+      {
+        title: "Approvals",
+        href: "/approvals",
+        icon: ClipboardCheck,
+        anyOf: ["leave:approve", "attendance:approve", "request:manage"],
+      },
+      {
+        title: "Team attendance",
+        href: "/attendance/team",
+        icon: CalendarCheck,
+        anyOf: ["attendance:read:team", "attendance:read:department", "attendance:read:all"],
+      },
+      {
+        title: "Leave calendar",
+        href: "/leave/calendar",
+        icon: CalendarDays,
+        anyOf: ["leave:read:team", "leave:read:department", "leave:read:all"],
+      },
     ],
   },
   {
@@ -80,8 +95,18 @@ export const NAV: NavGroup[] = [
     label: "HR operations",
     items: [
       { title: "Payroll", href: "/payroll", icon: IndianRupee, anyOf: ["payroll:read"] },
-      { title: "Recruitment", href: "/recruitment", icon: Briefcase, anyOf: ["recruitment:read", "interview:feedback"] },
-      { title: "Performance cycles", href: "/performance/cycles", icon: Target, anyOf: ["performance:manage"] },
+      {
+        title: "Recruitment",
+        href: "/recruitment",
+        icon: Briefcase,
+        anyOf: ["recruitment:read", "interview:feedback"],
+      },
+      {
+        title: "Performance cycles",
+        href: "/performance/cycles",
+        icon: Target,
+        anyOf: ["performance:manage"],
+      },
       { title: "Analytics", href: "/analytics", icon: BarChart3, anyOf: ["report:read"] },
       { title: "Documents", href: "/documents", icon: FileText, anyOf: ["document:manage"] },
     ],
@@ -89,7 +114,12 @@ export const NAV: NavGroup[] = [
   {
     label: "Administration",
     items: [
-      { title: "HR configuration", href: "/settings", icon: Settings, anyOf: ["leave:manage", "attendance:manage", "settings:manage", "payroll:manage"] },
+      {
+        title: "HR configuration",
+        href: "/settings",
+        icon: Settings,
+        anyOf: ["leave:manage", "attendance:manage", "settings:manage", "payroll:manage"],
+      },
       { title: "Users & roles", href: "/admin/users", icon: ShieldCheck, anyOf: ["user:manage"] },
       { title: "Audit trail", href: "/admin/audit", icon: ScrollText, anyOf: ["audit:read"] },
     ],
@@ -99,6 +129,8 @@ export const NAV: NavGroup[] = [
 export function visibleNav(perms: ReadonlySet<string>, hasEmployee: boolean): NavGroup[] {
   return NAV.map((g) => ({
     ...g,
-    items: g.items.filter((i) => (!i.employee || hasEmployee) && (!i.anyOf || i.anyOf.some((p) => perms.has(p)))),
+    items: g.items.filter(
+      (i) => (!i.employee || hasEmployee) && (!i.anyOf || i.anyOf.some((p) => perms.has(p))),
+    ),
   })).filter((g) => g.items.length > 0);
 }

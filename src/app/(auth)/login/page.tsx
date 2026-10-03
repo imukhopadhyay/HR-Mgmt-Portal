@@ -5,7 +5,11 @@ import { LoginForm } from "./login-form";
 
 export const metadata: Metadata = { title: "Sign in" };
 
-export default async function LoginPage({ searchParams }: { searchParams: Promise<{ next?: string }> }) {
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ next?: string }>;
+}) {
   if (await getSessionUser()) redirect("/dashboard");
   const { next } = await searchParams;
   return <LoginForm next={next} />;

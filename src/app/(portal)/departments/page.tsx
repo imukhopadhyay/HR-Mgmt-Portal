@@ -1,12 +1,23 @@
 import Link from "next/link";
 import { Building2, Trash2 } from "lucide-react";
 import { requirePagePermission } from "@/lib/auth/guard";
-import { listDepartments, listDesignations, employeeFormOptions } from "@/server/services/organisation.service";
+import {
+  listDepartments,
+  listDesignations,
+  employeeFormOptions,
+} from "@/server/services/organisation.service";
 import { deleteDepartmentAction, deleteDesignationAction } from "@/server/actions/organisation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PageHeader } from "@/components/shared/page-header";
 import { EmptyState } from "@/components/shared/empty-state";
@@ -18,7 +29,11 @@ export const metadata = { title: "Departments" };
 export default async function DepartmentsPage() {
   const actor = await requirePagePermission("directory:read");
   const canManage = actor.permissions.has("department:manage");
-  const [depts, desigs, options] = await Promise.all([listDepartments(), listDesignations(), canManage ? employeeFormOptions() : null]);
+  const [depts, desigs, options] = await Promise.all([
+    listDepartments(),
+    listDesignations(),
+    canManage ? employeeFormOptions() : null,
+  ]);
   const deptOpts = depts.map((d) => ({ id: d.id, label: d.name }));
   const total = depts.reduce((n, d) => n + d._count.employees, 0);
   return (
@@ -26,7 +41,11 @@ export default async function DepartmentsPage() {
       <PageHeader
         title="Departments & designations"
         description={`${depts.length} departments · ${total} active employees`}
-        actions={canManage && options ? <DepartmentDialog departments={deptOpts} employees={options.managers} /> : null}
+        actions={
+          canManage && options ? (
+            <DepartmentDialog departments={deptOpts} employees={options.managers} />
+          ) : null
+        }
       />
       <Tabs defaultValue="departments">
         <TabsList>
@@ -74,7 +93,15 @@ export default async function DepartmentsPage() {
                         <DepartmentDialog
                           departments={deptOpts}
                           employees={options.managers}
-                          initial={{ id: d.id, code: d.code, name: d.name, description: d.description ?? "", costCenter: d.costCenter ?? "", parentId: d.parentId ?? "", headId: d.headId ?? "" }}
+                          initial={{
+                            id: d.id,
+                            code: d.code,
+                            name: d.name,
+                            description: d.description ?? "",
+                            costCenter: d.costCenter ?? "",
+                            parentId: d.parentId ?? "",
+                            headId: d.headId ?? "",
+                          }}
                         />
                         <ConfirmAction
                           trigger={
@@ -124,7 +151,17 @@ export default async function DepartmentsPage() {
                     <TableCell>{g._count.employees}</TableCell>
                     {canManage && (
                       <TableCell className="text-right">
-                        <DesignationDialog departments={deptOpts} initial={{ id: g.id, title: g.title, level: g.level, grade: g.grade ?? "", departmentId: g.departmentId ?? "", description: g.description ?? "" }} />
+                        <DesignationDialog
+                          departments={deptOpts}
+                          initial={{
+                            id: g.id,
+                            title: g.title,
+                            level: g.level,
+                            grade: g.grade ?? "",
+                            departmentId: g.departmentId ?? "",
+                            description: g.description ?? "",
+                          }}
+                        />
                         <ConfirmAction
                           trigger={
                             <Button variant="ghost" size="icon" aria-label={`Delete ${g.title}`}>

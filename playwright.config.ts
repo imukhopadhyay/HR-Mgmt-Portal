@@ -18,9 +18,24 @@ export default defineConfig({
   use: { baseURL, trace: "retain-on-failure", screenshot: "only-on-failure" },
   projects: [
     { name: "setup", testMatch: /auth\.setup\.ts/ },
-    { name: "desktop", use: { ...devices["Desktop Chrome"] }, testIgnore: /responsive\.spec\.ts/, dependencies: ["setup"] },
-    { name: "mobile", use: { ...devices["Pixel 7"] }, testMatch: /responsive\.spec\.ts/, dependencies: ["setup"] },
-    { name: "tablet", use: { ...devices["Desktop Chrome"], viewport: { width: 820, height: 1180 } }, testMatch: /responsive\.spec\.ts/, dependencies: ["setup"] },
+    {
+      name: "desktop",
+      use: { ...devices["Desktop Chrome"] },
+      testIgnore: /responsive\.spec\.ts/,
+      dependencies: ["setup"],
+    },
+    {
+      name: "mobile",
+      use: { ...devices["Pixel 7"] },
+      testMatch: /responsive\.spec\.ts/,
+      dependencies: ["setup"],
+    },
+    {
+      name: "tablet",
+      use: { ...devices["Desktop Chrome"], viewport: { width: 820, height: 1180 } },
+      testMatch: /responsive\.spec\.ts/,
+      dependencies: ["setup"],
+    },
   ],
   webServer: process.env.BASE_URL
     ? undefined

@@ -13,7 +13,13 @@ import { Label } from "@/components/ui/label";
 import { FormField, NativeSelect } from "@/components/shared/form-field";
 import { useAction } from "@/hooks/use-action";
 import { humanize } from "@/lib/utils";
-import { EMPLOYEE_STATUSES, EMPLOYMENT_TYPES, GENDERS, employeeCreateSchema, employeeUpdateSchema } from "@/lib/validation/employee";
+import {
+  EMPLOYEE_STATUSES,
+  EMPLOYMENT_TYPES,
+  GENDERS,
+  employeeCreateSchema,
+  employeeUpdateSchema,
+} from "@/lib/validation/employee";
 import { createEmployeeAction, updateEmployeeAction } from "@/server/actions/employees";
 import type { ActionResult } from "@/lib/action";
 
@@ -28,7 +34,13 @@ export interface EmployeeFormOptions {
 type CreateValues = z.input<typeof employeeCreateSchema>;
 type UpdateValues = z.input<typeof employeeUpdateSchema>;
 
-export function EmployeeForm({ options, initial }: { options: EmployeeFormOptions; initial?: UpdateValues }) {
+export function EmployeeForm({
+  options,
+  initial,
+}: {
+  options: EmployeeFormOptions;
+  initial?: UpdateValues;
+}) {
   const router = useRouter();
   const isEdit = !!initial;
   const form = useForm<CreateValues & Partial<UpdateValues>>({
@@ -44,7 +56,9 @@ export function EmployeeForm({ options, initial }: { options: EmployeeFormOption
       createAccount: true,
     },
   });
-  const action = (isEdit ? updateEmployeeAction : createEmployeeAction) as (input: unknown) => Promise<ActionResult<unknown>>;
+  const action = (isEdit ? updateEmployeeAction : createEmployeeAction) as (
+    input: unknown,
+  ) => Promise<ActionResult<unknown>>;
   const { execute, pending } = useAction(action, {
     form,
     onSuccess: (data) => {
@@ -61,7 +75,9 @@ export function EmployeeForm({ options, initial }: { options: EmployeeFormOption
       <Card>
         <CardHeader>
           <CardTitle>Personal details</CardTitle>
-          <CardDescription>Personal information is visible only to the employee and HR.</CardDescription>
+          <CardDescription>
+            Personal information is visible only to the employee and HR.
+          </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <FormField label="First name" htmlFor="firstName" required error={e.firstName?.message}>
@@ -85,13 +101,27 @@ export function EmployeeForm({ options, initial }: { options: EmployeeFormOption
               ))}
             </NativeSelect>
           </FormField>
-          <FormField label="Personal email" htmlFor="personalEmail" error={e.personalEmail?.message}>
+          <FormField
+            label="Personal email"
+            htmlFor="personalEmail"
+            error={e.personalEmail?.message}
+          >
             <Input type="email" {...r("personalEmail")} />
           </FormField>
-          <FormField label="Phone" htmlFor="phone" error={e.phone?.message} hint="Include country code, e.g. +91 98765 43210">
+          <FormField
+            label="Phone"
+            htmlFor="phone"
+            error={e.phone?.message}
+            hint="Include country code, e.g. +91 98765 43210"
+          >
             <Input type="tel" {...r("phone")} />
           </FormField>
-          <FormField label="Address line 1" htmlFor="addressLine1" error={e.addressLine1?.message} className="sm:col-span-2">
+          <FormField
+            label="Address line 1"
+            htmlFor="addressLine1"
+            error={e.addressLine1?.message}
+            className="sm:col-span-2"
+          >
             <Input {...r("addressLine1")} />
           </FormField>
           <FormField label="Address line 2" htmlFor="addressLine2" error={e.addressLine2?.message}>
@@ -148,7 +178,11 @@ export function EmployeeForm({ options, initial }: { options: EmployeeFormOption
               ))}
             </NativeSelect>
           </FormField>
-          <FormField label="Employment type" htmlFor="employmentType" error={e.employmentType?.message}>
+          <FormField
+            label="Employment type"
+            htmlFor="employmentType"
+            error={e.employmentType?.message}
+          >
             <NativeSelect {...r("employmentType")}>
               {EMPLOYMENT_TYPES.map((t) => (
                 <option key={t} value={t}>
@@ -157,7 +191,12 @@ export function EmployeeForm({ options, initial }: { options: EmployeeFormOption
               ))}
             </NativeSelect>
           </FormField>
-          <FormField label="Shift" htmlFor="shiftId" error={e.shiftId?.message} hint="Defaults to the organisation's default shift">
+          <FormField
+            label="Shift"
+            htmlFor="shiftId"
+            error={e.shiftId?.message}
+            hint="Defaults to the organisation's default shift"
+          >
             <NativeSelect {...r("shiftId")}>
               <option value="">— Default —</option>
               {options.shifts.map((o) => (
@@ -167,10 +206,20 @@ export function EmployeeForm({ options, initial }: { options: EmployeeFormOption
               ))}
             </NativeSelect>
           </FormField>
-          <FormField label="Date of joining" htmlFor="dateOfJoining" required error={e.dateOfJoining?.message}>
+          <FormField
+            label="Date of joining"
+            htmlFor="dateOfJoining"
+            required
+            error={e.dateOfJoining?.message}
+          >
             <Input type="date" {...r("dateOfJoining")} />
           </FormField>
-          <FormField label="Probation ends" htmlFor="probationEndsOn" error={e.probationEndsOn?.message} hint="Defaults to 6 months after joining">
+          <FormField
+            label="Probation ends"
+            htmlFor="probationEndsOn"
+            error={e.probationEndsOn?.message}
+            hint="Defaults to 6 months after joining"
+          >
             <Input type="date" {...r("probationEndsOn")} />
           </FormField>
           <FormField label="Work location" htmlFor="workLocation" error={e.workLocation?.message}>
@@ -180,27 +229,46 @@ export function EmployeeForm({ options, initial }: { options: EmployeeFormOption
             <>
               <FormField label="Status" htmlFor="status" error={e.status?.message}>
                 <NativeSelect {...r("status")}>
-                  {EMPLOYEE_STATUSES.filter((s) => s !== "EXITED" || initial?.status === "EXITED").map((s) => (
+                  {EMPLOYEE_STATUSES.filter(
+                    (s) => s !== "EXITED" || initial?.status === "EXITED",
+                  ).map((s) => (
                     <option key={s} value={s}>
                       {humanize(s)}
                     </option>
                   ))}
                 </NativeSelect>
               </FormField>
-              <FormField label="Change remarks" htmlFor="changeRemarks" error={e.changeRemarks?.message} hint="Recorded in employment history" className="sm:col-span-2">
+              <FormField
+                label="Change remarks"
+                htmlFor="changeRemarks"
+                error={e.changeRemarks?.message}
+                hint="Recorded in employment history"
+                className="sm:col-span-2"
+              >
                 <Input {...r("changeRemarks")} />
               </FormField>
             </>
           )}
-          <FormField label="Short bio" htmlFor="bio" error={e.bio?.message} className="sm:col-span-2 lg:col-span-3">
+          <FormField
+            label="Short bio"
+            htmlFor="bio"
+            error={e.bio?.message}
+            className="sm:col-span-2 lg:col-span-3"
+          >
             <Textarea rows={3} {...r("bio")} />
           </FormField>
           {!isEdit && (
             <div className="flex items-start gap-2 sm:col-span-2 lg:col-span-3">
-              <Checkbox id="createAccount" defaultChecked onCheckedChange={(v) => form.setValue("createAccount", v === true)} />
+              <Checkbox
+                id="createAccount"
+                defaultChecked
+                onCheckedChange={(v) => form.setValue("createAccount", v === true)}
+              />
               <div className="grid gap-1">
                 <Label htmlFor="createAccount">Create portal account</Label>
-                <p className="text-muted-foreground text-xs">An invitation to set a password is emailed to the work address.</p>
+                <p className="text-muted-foreground text-xs">
+                  An invitation to set a password is emailed to the work address.
+                </p>
               </div>
             </div>
           )}

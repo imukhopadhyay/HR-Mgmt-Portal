@@ -22,7 +22,11 @@ export const leaveDecisionSchema = z.object({
 
 export const leaveTypeSchema = z.object({
   id: z.string().optional(),
-  code: z.string().trim().toUpperCase().regex(/^[A-Z]{2,6}$/, "2–6 letters"),
+  code: z
+    .string()
+    .trim()
+    .toUpperCase()
+    .regex(/^[A-Z]{2,6}$/, "2–6 letters"),
   name: reqText(60, "Name"),
   description: optText(500),
   color: z.string().regex(/^#[0-9a-fA-F]{6}$/, "Hex colour, e.g. #2563eb"),
@@ -32,9 +36,15 @@ export const leaveTypeSchema = z.object({
   isPaid: z.boolean(),
   allowHalfDay: z.boolean(),
   allowNegativeBalance: z.boolean(),
-  maxConsecutiveDays: z.union([z.literal(""), z.coerce.number().int().min(1).max(365)]).optional().transform((v) => (v === "" || v === undefined ? undefined : v)),
+  maxConsecutiveDays: z
+    .union([z.literal(""), z.coerce.number().int().min(1).max(365)])
+    .optional()
+    .transform((v) => (v === "" || v === undefined ? undefined : v)),
   minNoticeDays: z.coerce.number().int().min(0).max(90),
-  documentRequiredAfterDays: z.union([z.literal(""), z.coerce.number().int().min(1).max(365)]).optional().transform((v) => (v === "" || v === undefined ? undefined : v)),
+  documentRequiredAfterDays: z
+    .union([z.literal(""), z.coerce.number().int().min(1).max(365)])
+    .optional()
+    .transform((v) => (v === "" || v === undefined ? undefined : v)),
   approvalLevels: z.coerce.number().int().min(1).max(2),
   isActive: z.boolean(),
 });
@@ -43,6 +53,10 @@ export const balanceAdjustSchema = z.object({
   employeeId: z.string().min(1, "Select an employee"),
   leaveTypeId: z.string().min(1, "Select a leave type"),
   year: z.coerce.number().int().min(2000).max(2100),
-  delta: z.coerce.number().min(-365).max(365).refine((v) => v * 2 === Math.round(v * 2), "Use multiples of 0.5"),
+  delta: z.coerce
+    .number()
+    .min(-365)
+    .max(365)
+    .refine((v) => v * 2 === Math.round(v * 2), "Use multiples of 0.5"),
   reason: reqText(300, "Reason"),
 });

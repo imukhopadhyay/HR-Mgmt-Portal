@@ -8,7 +8,14 @@ import { Pencil, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { FormField, NativeSelect } from "@/components/shared/form-field";
 import { useAction } from "@/hooks/use-action";
@@ -21,9 +28,21 @@ export function ShiftDialog({ initial }: { initial?: z.input<typeof shiftSchema>
   const [open, setOpen] = useState(false);
   const form = useForm<z.input<typeof shiftSchema>>({
     resolver: zodResolver(shiftSchema),
-    defaultValues: initial ?? { name: "", startTime: "09:30", endTime: "18:30", graceMinutes: 15, fullDayMinutes: 450, halfDayMinutes: 240, weeklyOffs: [0, 6], isDefault: false },
+    defaultValues: initial ?? {
+      name: "",
+      startTime: "09:30",
+      endTime: "18:30",
+      graceMinutes: 15,
+      fullDayMinutes: 450,
+      halfDayMinutes: 240,
+      weeklyOffs: [0, 6],
+      isDefault: false,
+    },
   });
-  const { execute, pending } = useAction(saveShiftAction, { form, onSuccess: () => setOpen(false) });
+  const { execute, pending } = useAction(saveShiftAction, {
+    form,
+    onSuccess: () => setOpen(false),
+  });
   const e = form.formState.errors;
   const offs = form.watch("weeklyOffs") as number[];
   return (
@@ -43,8 +62,19 @@ export function ShiftDialog({ initial }: { initial?: z.input<typeof shiftSchema>
         <DialogHeader>
           <DialogTitle>{initial ? "Edit shift" : "New shift"}</DialogTitle>
         </DialogHeader>
-        <form id="shift-form" className="grid gap-4 sm:grid-cols-3" onSubmit={form.handleSubmit((v) => execute(v))} noValidate>
-          <FormField label="Name" htmlFor="s-name" required error={e.name?.message} className="sm:col-span-3">
+        <form
+          id="shift-form"
+          className="grid gap-4 sm:grid-cols-3"
+          onSubmit={form.handleSubmit((v) => execute(v))}
+          noValidate
+        >
+          <FormField
+            label="Name"
+            htmlFor="s-name"
+            required
+            error={e.name?.message}
+            className="sm:col-span-3"
+          >
             <Input {...form.register("name")} />
           </FormField>
           <FormField label="Start" htmlFor="s-start" error={e.startTime?.message}>
@@ -56,10 +86,18 @@ export function ShiftDialog({ initial }: { initial?: z.input<typeof shiftSchema>
           <FormField label="Grace (min)" htmlFor="s-grace" error={e.graceMinutes?.message}>
             <Input type="number" {...form.register("graceMinutes")} />
           </FormField>
-          <FormField label="Full day (min worked)" htmlFor="s-full" error={e.fullDayMinutes?.message}>
+          <FormField
+            label="Full day (min worked)"
+            htmlFor="s-full"
+            error={e.fullDayMinutes?.message}
+          >
             <Input type="number" {...form.register("fullDayMinutes")} />
           </FormField>
-          <FormField label="Half day (min worked)" htmlFor="s-half" error={e.halfDayMinutes?.message}>
+          <FormField
+            label="Half day (min worked)"
+            htmlFor="s-half"
+            error={e.halfDayMinutes?.message}
+          >
             <Input type="number" {...form.register("halfDayMinutes")} />
           </FormField>
           <fieldset className="sm:col-span-3">
@@ -70,7 +108,12 @@ export function ShiftDialog({ initial }: { initial?: z.input<typeof shiftSchema>
                   <Checkbox
                     id={`s-off-${i}`}
                     checked={offs.includes(i)}
-                    onCheckedChange={(v) => form.setValue("weeklyOffs", v === true ? [...offs, i].sort() : offs.filter((x) => x !== i))}
+                    onCheckedChange={(v) =>
+                      form.setValue(
+                        "weeklyOffs",
+                        v === true ? [...offs, i].sort() : offs.filter((x) => x !== i),
+                      )
+                    }
                   />
                   <Label htmlFor={`s-off-${i}`}>{d}</Label>
                 </div>
@@ -78,7 +121,11 @@ export function ShiftDialog({ initial }: { initial?: z.input<typeof shiftSchema>
             </div>
           </fieldset>
           <div className="flex items-center gap-2 sm:col-span-3">
-            <Checkbox id="s-default" defaultChecked={!!initial?.isDefault} onCheckedChange={(v) => form.setValue("isDefault", v === true)} />
+            <Checkbox
+              id="s-default"
+              defaultChecked={!!initial?.isDefault}
+              onCheckedChange={(v) => form.setValue("isDefault", v === true)}
+            />
             <Label htmlFor="s-default">Default shift for new employees</Label>
           </div>
         </form>
@@ -94,8 +141,17 @@ export function ShiftDialog({ initial }: { initial?: z.input<typeof shiftSchema>
 
 export function HolidayDialog({ initial }: { initial?: z.input<typeof holidaySchema> }) {
   const [open, setOpen] = useState(false);
-  const form = useForm<z.input<typeof holidaySchema>>({ resolver: zodResolver(holidaySchema), defaultValues: initial ?? { name: "", date: "", type: "PUBLIC", location: "" } });
-  const { execute, pending } = useAction(saveHolidayAction, { form, onSuccess: () => { setOpen(false); if (!initial) form.reset(); } });
+  const form = useForm<z.input<typeof holidaySchema>>({
+    resolver: zodResolver(holidaySchema),
+    defaultValues: initial ?? { name: "", date: "", type: "PUBLIC", location: "" },
+  });
+  const { execute, pending } = useAction(saveHolidayAction, {
+    form,
+    onSuccess: () => {
+      setOpen(false);
+      if (!initial) form.reset();
+    },
+  });
   const e = form.formState.errors;
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -114,21 +170,42 @@ export function HolidayDialog({ initial }: { initial?: z.input<typeof holidaySch
         <DialogHeader>
           <DialogTitle>{initial ? "Edit holiday" : "Add holiday"}</DialogTitle>
         </DialogHeader>
-        <form id="hol-form" className="grid gap-4 sm:grid-cols-2" onSubmit={form.handleSubmit((v) => execute(v))} noValidate>
-          <FormField label="Name" htmlFor="h-name" required error={e.name?.message} className="sm:col-span-2">
+        <form
+          id="hol-form"
+          className="grid gap-4 sm:grid-cols-2"
+          onSubmit={form.handleSubmit((v) => execute(v))}
+          noValidate
+        >
+          <FormField
+            label="Name"
+            htmlFor="h-name"
+            required
+            error={e.name?.message}
+            className="sm:col-span-2"
+          >
             <Input {...form.register("name")} />
           </FormField>
           <FormField label="Date" htmlFor="h-date" required error={e.date?.message}>
             <Input type="date" {...form.register("date")} />
           </FormField>
-          <FormField label="Type" htmlFor="h-type" error={e.type?.message} hint="Only public holidays are excluded from leave and attendance">
+          <FormField
+            label="Type"
+            htmlFor="h-type"
+            error={e.type?.message}
+            hint="Only public holidays are excluded from leave and attendance"
+          >
             <NativeSelect {...form.register("type")}>
               <option value="PUBLIC">Public</option>
               <option value="OPTIONAL">Optional</option>
               <option value="RESTRICTED">Restricted</option>
             </NativeSelect>
           </FormField>
-          <FormField label="Location (blank = all)" htmlFor="h-loc" error={e.location?.message} className="sm:col-span-2">
+          <FormField
+            label="Location (blank = all)"
+            htmlFor="h-loc"
+            error={e.location?.message}
+            className="sm:col-span-2"
+          >
             <Input {...form.register("location")} />
           </FormField>
         </form>

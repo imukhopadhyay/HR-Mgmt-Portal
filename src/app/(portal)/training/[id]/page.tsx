@@ -5,11 +5,22 @@ import { dbDateToKey, formatDateKey } from "@/lib/dates";
 import { humanize } from "@/lib/utils";
 import { trainingDetail } from "@/server/services/training.service";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { PageHeader } from "@/components/shared/page-header";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { EmptyState } from "@/components/shared/empty-state";
-import { CompletionDialog, EnrollDialog, TrainingDialog } from "@/components/training/training-dialogs";
+import {
+  CompletionDialog,
+  EnrollDialog,
+  TrainingDialog,
+} from "@/components/training/training-dialogs";
 
 export const metadata = { title: "Training programme" };
 
@@ -19,9 +30,24 @@ export default async function TrainingDetailPage({ params }: { params: Promise<{
   const t = await trainingDetail(id).catch(pageError);
   const canManage = actor.permissions.has("training:manage");
   const employees = canManage
-    ? await db.employee.findMany({ where: { deletedAt: null, status: { not: "EXITED" }, trainingEnrollments: { none: { trainingId: id, status: { not: "CANCELLED" } } } }, select: { id: true, firstName: true, lastName: true, department: { select: { name: true } } }, orderBy: { firstName: "asc" } })
+    ? await db.employee.findMany({
+        where: {
+          deletedAt: null,
+          status: { not: "EXITED" },
+          trainingEnrollments: { none: { trainingId: id, status: { not: "CANCELLED" } } },
+        },
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          department: { select: { name: true } },
+        },
+        orderBy: { firstName: "asc" },
+      })
     : [];
-  const visible = canManage ? t.enrollments : t.enrollments.filter((e) => e.employeeId === actor.employeeId);
+  const visible = canManage
+    ? t.enrollments
+    : t.enrollments.filter((e) => e.employeeId === actor.employeeId);
   return (
     <>
       <PageHeader
@@ -32,10 +58,33 @@ export default async function TrainingDetailPage({ params }: { params: Promise<{
             <StatusBadge status={t.status} />
             {canManage && (
               <TrainingDialog
-                initial={{ id: t.id, title: t.title, description: t.description ?? "", category: t.category, trainer: t.trainer ?? "", mode: t.mode, location: t.location ?? "", startDate: dbDateToKey(t.startDate), endDate: dbDateToKey(t.endDate), capacity: t.capacity ?? "", providesCertification: t.providesCertification, skill: t.skill ?? "", status: t.status }}
+                initial={{
+                  id: t.id,
+                  title: t.title,
+                  description: t.description ?? "",
+                  category: t.category,
+                  trainer: t.trainer ?? "",
+                  mode: t.mode,
+                  location: t.location ?? "",
+                  startDate: dbDateToKey(t.startDate),
+                  endDate: dbDateToKey(t.endDate),
+                  capacity: t.capacity ?? "",
+                  providesCertification: t.providesCertification,
+                  skill: t.skill ?? "",
+                  status: t.status,
+                }}
               />
             )}
-            {canManage && !["COMPLETED", "CANCELLED"].includes(t.status) && <EnrollDialog trainingId={t.id} employees={employees.map((e) => ({ id: e.id, label: `${e.firstName} ${e.lastName}`, dept: e.department?.name ?? "—" }))} />}
+            {canManage && !["COMPLETED", "CANCELLED"].includes(t.status) && (
+              <EnrollDialog
+                trainingId={t.id}
+                employees={employees.map((e) => ({
+                  id: e.id,
+                  label: `${e.firstName} ${e.lastName}`,
+                  dept: e.department?.name ?? "—",
+                }))}
+              />
+            )}
           </>
         }
       />
@@ -46,7 +95,10 @@ export default async function TrainingDetailPage({ params }: { params: Promise<{
       )}
       <Card className="py-0">
         <CardHeader className="pt-5">
-          <CardTitle>Participants ({t.enrollments.filter((e) => e.status !== "CANCELLED").length}{t.capacity ? ` / ${t.capacity}` : ""})</CardTitle>
+          <CardTitle>
+            Participants ({t.enrollments.filter((e) => e.status !== "CANCELLED").length}
+            {t.capacity ? ` / ${t.capacity}` : ""})
+          </CardTitle>
         </CardHeader>
         {visible.length === 0 ? (
           <EmptyState title="No participants" />
@@ -66,20 +118,37 @@ export default async function TrainingDetailPage({ params }: { params: Promise<{
               {visible.map((e) => (
                 <TableRow key={e.id}>
                   <TableCell>
-                    <Link href={`/employees/${e.employee.id}`} className="font-medium hover:underline">
+                    <Link
+                      href={`/employees/${e.employee.id}`}
+                      className="font-medium hover:underline"
+                    >
                       {e.employee.firstName} {e.employee.lastName}
                     </Link>
-                    <div className="text-muted-foreground text-xs">{e.employee.department?.name}</div>
+                    <div className="text-muted-foreground text-xs">
+                      {e.employee.department?.name}
+                    </div>
                   </TableCell>
                   <TableCell>
                     <StatusBadge status={e.status} />
                   </TableCell>
-                  <TableCell className="text-right tabular-nums">{e.attendancePercent !== null ? `${e.attendancePercent}%` : "—"}</TableCell>
+                  <TableCell className="text-right tabular-nums">
+                    {e.attendancePercent !== null ? `${e.attendancePercent}%` : "—"}
+                  </TableCell>
                   <TableCell className="text-right tabular-nums">{e.score ?? "—"}</TableCell>
-                  <TableCell className="text-right tabular-nums">{e.feedbackRating ? `${e.feedbackRating}/5` : "—"}</TableCell>
+                  <TableCell className="text-right tabular-nums">
+                    {e.feedbackRating ? `${e.feedbackRating}/5` : "—"}
+                  </TableCell>
                   {canManage && (
                     <TableCell className="text-right">
-                      <CompletionDialog name={`${e.employee.firstName} ${e.employee.lastName}`} initial={{ enrollmentId: e.id, status: e.status, attendancePercent: e.attendancePercent ?? "", score: e.score ?? "" }} />
+                      <CompletionDialog
+                        name={`${e.employee.firstName} ${e.employee.lastName}`}
+                        initial={{
+                          enrollmentId: e.id,
+                          status: e.status,
+                          attendancePercent: e.attendancePercent ?? "",
+                          score: e.score ?? "",
+                        }}
+                      />
                     </TableCell>
                   )}
                 </TableRow>

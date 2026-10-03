@@ -13,7 +13,11 @@ export default async function ReviewPage({ params }: { params: Promise<{ id: str
   const actor = await requireUser();
   const { id } = await params;
   const { review: r, goals, isSelf, isReviewer } = await reviewDetail(actor, id).catch(pageError);
-  const canManagerReview = (isReviewer || actor.permissions.has("performance:manage")) && !isSelf && r.status === "MANAGER_REVIEW" && r.cycle.status === "ACTIVE";
+  const canManagerReview =
+    (isReviewer || actor.permissions.has("performance:manage")) &&
+    !isSelf &&
+    r.status === "MANAGER_REVIEW" &&
+    r.cycle.status === "ACTIVE";
   const showManagerSection = r.status === "COMPLETED" || !isSelf;
   return (
     <>
@@ -37,7 +41,11 @@ export default async function ReviewPage({ params }: { params: Promise<{ id: str
                     <span className="font-medium">{g.title}</span>
                     <StatusBadge status={g.status} />
                   </div>
-                  <Progress value={g.progress} className="mt-2" aria-label={`${g.title} ${g.progress}%`} />
+                  <Progress
+                    value={g.progress}
+                    className="mt-2"
+                    aria-label={`${g.title} ${g.progress}%`}
+                  />
                 </li>
               ))}
             </ul>
@@ -48,7 +56,11 @@ export default async function ReviewPage({ params }: { params: Promise<{ id: str
         <Card>
           <CardHeader>
             <CardTitle>Self-assessment</CardTitle>
-            <CardDescription>{r.selfSubmittedAt ? `Submitted ${formatDateKey(r.selfSubmittedAt)}` : "Not submitted"}</CardDescription>
+            <CardDescription>
+              {r.selfSubmittedAt
+                ? `Submitted ${formatDateKey(r.selfSubmittedAt)}`
+                : "Not submitted"}
+            </CardDescription>
           </CardHeader>
           <CardContent>
             {isSelf && r.status === "SELF_REVIEW" && r.cycle.status === "ACTIVE" ? (
@@ -69,7 +81,9 @@ export default async function ReviewPage({ params }: { params: Promise<{ id: str
           <Card>
             <CardHeader>
               <CardTitle>Manager review</CardTitle>
-              <CardDescription>{r.reviewer ? `${r.reviewer.firstName} ${r.reviewer.lastName}` : "HR"}</CardDescription>
+              <CardDescription>
+                {r.reviewer ? `${r.reviewer.firstName} ${r.reviewer.lastName}` : "HR"}
+              </CardDescription>
             </CardHeader>
             <CardContent>
               {canManagerReview ? (
@@ -77,7 +91,9 @@ export default async function ReviewPage({ params }: { params: Promise<{ id: str
               ) : r.status === "COMPLETED" ? (
                 <div className="grid gap-2 text-sm">
                   <p>
-                    <span className="text-muted-foreground">Manager rating:</span> {r.managerRating}/5 · <span className="text-muted-foreground">Final:</span> <strong>{r.finalRating}/5</strong>
+                    <span className="text-muted-foreground">Manager rating:</span> {r.managerRating}
+                    /5 · <span className="text-muted-foreground">Final:</span>{" "}
+                    <strong>{r.finalRating}/5</strong>
                   </p>
                   <p className="whitespace-pre-line">{r.managerComments}</p>
                   {r.strengths && (
@@ -92,7 +108,11 @@ export default async function ReviewPage({ params }: { params: Promise<{ id: str
                   )}
                 </div>
               ) : (
-                <p className="text-muted-foreground text-sm">{r.status === "SELF_REVIEW" ? "Available after the self-assessment is submitted." : "Pending."}</p>
+                <p className="text-muted-foreground text-sm">
+                  {r.status === "SELF_REVIEW"
+                    ? "Available after the self-assessment is submitted."
+                    : "Pending."}
+                </p>
               )}
             </CardContent>
           </Card>

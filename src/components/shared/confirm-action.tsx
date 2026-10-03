@@ -69,12 +69,21 @@ export function ConfirmAction<T>({
               {commentLabel}
               {commentRequired && <span className="text-destructive">*</span>}
             </Label>
-            <Textarea id={commentId} value={comment} maxLength={1000} onChange={(e) => setComment(e.target.value)} />
+            <Textarea
+              id={commentId}
+              value={comment}
+              maxLength={1000}
+              onChange={(e) => setComment(e.target.value)}
+            />
           </div>
         )}
         <AlertDialogFooter>
           <AlertDialogCancel disabled={pending}>Cancel</AlertDialogCancel>
-          <Button variant={destructive ? "destructive" : "default"} disabled={disabled} onClick={() => execute(comment.trim() || undefined)}>
+          <Button
+            variant={destructive ? "destructive" : "default"}
+            disabled={disabled}
+            onClick={() => execute(comment.trim() || undefined)}
+          >
             {pending ? "Working…" : confirmLabel}
           </Button>
         </AlertDialogFooter>

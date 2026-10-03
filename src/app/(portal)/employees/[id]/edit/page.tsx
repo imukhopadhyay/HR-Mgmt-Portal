@@ -11,7 +11,10 @@ export const metadata = { title: "Edit employee" };
 export default async function EditEmployeePage({ params }: { params: Promise<{ id: string }> }) {
   await requirePagePermission("employee:update");
   const { id } = await params;
-  const [e, options] = await Promise.all([db.employee.findFirst({ where: { id, deletedAt: null } }), employeeFormOptions()]);
+  const [e, options] = await Promise.all([
+    db.employee.findFirst({ where: { id, deletedAt: null } }),
+    employeeFormOptions(),
+  ]);
   if (!e) notFound();
   const s = (v: string | null) => v ?? "";
   return (

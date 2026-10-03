@@ -7,7 +7,14 @@ import { monthCalendar, todayStatus } from "@/server/services/attendance.service
 import { cancelCorrectionAction } from "@/server/actions/attendance";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { PageHeader } from "@/components/shared/page-header";
 import { StatCard } from "@/components/shared/stat-card";
 import { StatusBadge } from "@/components/shared/status-badge";
@@ -20,21 +27,39 @@ import { CorrectionDialog } from "@/components/attendance/correction-dialog";
 
 export const metadata = { title: "Attendance" };
 
-export default async function AttendancePage({ searchParams }: { searchParams: Promise<{ month?: string }> }) {
+export default async function AttendancePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ month?: string }>;
+}) {
   const actor = await requireUser();
-  if (!actor.employeeId) return <EmptyState title="No employee profile" description="Attendance is available to employees only." />;
+  if (!actor.employeeId)
+    return (
+      <EmptyState
+        title="No employee profile"
+        description="Attendance is available to employees only."
+      />
+    );
   const today = todayKey();
   const { year, month } = parseMonth((await searchParams).month, today);
   const [status, cal, corrections] = await Promise.all([
     todayStatus(actor.employeeId),
     monthCalendar(actor, actor.employeeId, year, month),
-    db.attendanceCorrection.findMany({ where: { employeeId: actor.employeeId }, orderBy: { createdAt: "desc" }, take: 10 }),
+    db.attendanceCorrection.findMany({
+      where: { employeeId: actor.employeeId },
+      orderBy: { createdAt: "desc" },
+      take: 10,
+    }),
   ]);
   const s = cal.summary;
   const blocked = status.onLeave ? "You are on approved leave today." : null;
   return (
     <>
-      <PageHeader title="My attendance" description="Check in and out, review your month and request corrections." actions={<CorrectionDialog maxDate={today} />} />
+      <PageHeader
+        title="My attendance"
+        description="Check in and out, review your month and request corrections."
+        actions={<CorrectionDialog maxDate={today} />}
+      />
       <div className="grid gap-6 lg:grid-cols-3">
         <CheckInCard
           checkInAt={status.record?.checkInAt?.toISOString() ?? null}
@@ -47,11 +72,18 @@ export default async function AttendancePage({ searchParams }: { searchParams: P
           <StatCard label="Present" value={s.present} hint={`${s.halfDay} half days`} />
           <StatCard label="Absent" value={s.absent} hint={`${s.notMarked} not marked`} />
           <StatCard label="Late arrivals" value={s.lateDays} />
-          <StatCard label="Hours worked" value={formatMinutes(s.workMinutes)} hint={`Overtime ${formatMinutes(s.overtimeMinutes)}`} />
+          <StatCard
+            label="Hours worked"
+            value={formatMinutes(s.workMinutes)}
+            hint={`Overtime ${formatMinutes(s.overtimeMinutes)}`}
+          />
           <StatCard label="On leave" value={s.onLeave} />
           <StatCard label="Holidays" value={s.holidays} />
           <StatCard label="Weekly offs" value={s.weeklyOffs} />
-          <StatCard label="Today" value={status.record ? (status.record.checkOutAt ? "Done" : "Working") : "Not in"} />
+          <StatCard
+            label="Today"
+            value={status.record ? (status.record.checkOutAt ? "Done" : "Working") : "Not in"}
+          />
         </div>
       </div>
       <Card>
@@ -88,7 +120,9 @@ export default async function AttendancePage({ searchParams }: { searchParams: P
                   <TableCell className="text-xs">
                     {formatDateTime(c.requestedCheckIn)} – {formatDateTime(c.requestedCheckOut)}
                   </TableCell>
-                  <TableCell className="hidden max-w-60 truncate md:table-cell">{c.reason}</TableCell>
+                  <TableCell className="hidden max-w-60 truncate md:table-cell">
+                    {c.reason}
+                  </TableCell>
                   <TableCell>
                     <StatusBadge status={c.status} />
                   </TableCell>

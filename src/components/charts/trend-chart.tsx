@@ -1,6 +1,15 @@
 "use client";
 
-import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import {
+  CartesianGrid,
+  Legend,
+  Line,
+  LineChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 
 export interface Series {
   key: string;
@@ -26,27 +35,63 @@ export function TrendChart({
 }) {
   const formatX = (v: string) =>
     xFormat === "day"
-      ? new Date(`${v}T00:00:00Z`).toLocaleDateString("en-IN", { day: "numeric", month: "short", timeZone: "UTC" })
+      ? new Date(`${v}T00:00:00Z`).toLocaleDateString("en-IN", {
+          day: "numeric",
+          month: "short",
+          timeZone: "UTC",
+        })
       : xFormat === "month"
-        ? new Date(`${v}-01T00:00:00Z`).toLocaleDateString("en-IN", { month: "short", year: "2-digit", timeZone: "UTC" })
+        ? new Date(`${v}-01T00:00:00Z`).toLocaleDateString("en-IN", {
+            month: "short",
+            year: "2-digit",
+            timeZone: "UTC",
+          })
         : v;
-  if (!data.length) return <p className="text-muted-foreground py-10 text-center text-sm">No data for this period.</p>;
+  if (!data.length)
+    return (
+      <p className="text-muted-foreground py-10 text-center text-sm">No data for this period.</p>
+    );
   return (
     <figure>
       <div style={{ height }} aria-hidden>
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={data} margin={{ top: 8, right: 12, bottom: 0, left: -16 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
-            <XAxis dataKey={xKey} tickFormatter={formatX} tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} minTickGap={24} />
+            <XAxis
+              dataKey={xKey}
+              tickFormatter={formatX}
+              tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
+              minTickGap={24}
+            />
             <YAxis allowDecimals={false} tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} />
             <Tooltip
               labelFormatter={(v) => formatX(String(v))}
-              contentStyle={{ background: "var(--popover)", border: "1px solid var(--border)", borderRadius: 8, fontSize: 12, color: "var(--popover-foreground)" }}
+              contentStyle={{
+                background: "var(--popover)",
+                border: "1px solid var(--border)",
+                borderRadius: 8,
+                fontSize: 12,
+                color: "var(--popover-foreground)",
+              }}
               cursor={{ stroke: "var(--muted-foreground)", strokeDasharray: "3 3" }}
             />
-            {series.length > 1 && <Legend iconType="plainline" wrapperStyle={{ fontSize: 12, color: "var(--muted-foreground)" }} />}
+            {series.length > 1 && (
+              <Legend
+                iconType="plainline"
+                wrapperStyle={{ fontSize: 12, color: "var(--muted-foreground)" }}
+              />
+            )}
             {series.map((s) => (
-              <Line key={s.key} type="monotone" dataKey={s.key} name={s.label} stroke={s.color} strokeWidth={2} dot={false} activeDot={{ r: 4, strokeWidth: 2, stroke: "var(--card)" }} />
+              <Line
+                key={s.key}
+                type="monotone"
+                dataKey={s.key}
+                name={s.label}
+                stroke={s.color}
+                strokeWidth={2}
+                dot={false}
+                activeDot={{ r: 4, strokeWidth: 2, stroke: "var(--card)" }}
+              />
             ))}
           </LineChart>
         </ResponsiveContainer>

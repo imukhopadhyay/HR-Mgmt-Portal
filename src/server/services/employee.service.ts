@@ -2,7 +2,12 @@ import { Prisma, type EmployeeStatus } from "@prisma/client";
 import { db, type Tx } from "@/lib/db";
 import { writeAudit } from "@/lib/audit";
 import type { Actor } from "@/lib/action";
-import { assertPermission, canAccessEmployee, employeeScopeWhere, reportingTreeIds } from "@/lib/auth/rbac";
+import {
+  assertPermission,
+  canAccessEmployee,
+  employeeScopeWhere,
+  reportingTreeIds,
+} from "@/lib/auth/rbac";
 import { syncDerivedRoles } from "@/lib/auth/role-sync";
 import { OFFBOARDING_TEMPLATE, ONBOARDING_TEMPLATE } from "@/lib/checklists";
 import { addDaysKey, dateKeyToDb, dbDateToKey, todayKey } from "@/lib/dates";
@@ -43,7 +48,9 @@ const listSelect = {
 
 export type EmployeeListRow = Prisma.EmployeeGetPayload<{ select: typeof listSelect }>;
 
-function searchWhere(f: Pick<EmployeeListFilters, "q" | "departmentId" | "status" | "employmentType">): Prisma.EmployeeWhereInput {
+function searchWhere(
+  f: Pick<EmployeeListFilters, "q" | "departmentId" | "status" | "employmentType">,
+): Prisma.EmployeeWhereInput {
   const and: Prisma.EmployeeWhereInput[] = [{ deletedAt: null }];
   if (f.q) {
     const terms = f.q.split(/\s+/).filter(Boolean).slice(0, 4);
@@ -70,7 +77,13 @@ function searchWhere(f: Pick<EmployeeListFilters, "q" | "departmentId" | "status
  * with `directory:read` sees the same limited columns for active staff.
  */
 export async function listEmployees(actor: Actor, f: EmployeeListFilters) {
-  assertPermission(actor, "directory:read", "employee:read:all", "employee:read:team", "employee:read:department");
+  assertPermission(
+    actor,
+    "directory:read",
+    "employee:read:all",
+    "employee:read:team",
+    "employee:read:department",
+  );
   // The directory exposes current staff to everyone; ex-employees only within the actor's scope.
   const directoryOnly = actor.permissions.has("directory:read") && f.status !== "EXITED";
   const scope = directoryOnly ? {} : await employeeScopeWhere(actor, "employee");
@@ -89,7 +102,10 @@ export async function listEmployees(actor: Actor, f: EmployeeListFilters) {
 }
 
 /** Rows for CSV/XLSX export — restricted to the actor's full-access scope. */
-export async function exportEmployees(actor: Actor, f: Omit<EmployeeListFilters, "page" | "pageSize">) {
+export async function exportEmployees(
+  actor: Actor,
+  f: Omit<EmployeeListFilters, "page" | "pageSize">,
+) {
   assertPermission(actor, "report:export");
   const scope = await employeeScopeWhere(actor, "employee");
   const rows = await db.employee.findMany({
@@ -148,50 +164,102 @@ export async function getEmployeeProfile(actor: Actor, id: string) {
       shift: { select: { id: true, name: true } },
       directReports: {
         where: { deletedAt: null, status: { not: "EXITED" } },
-        select: { id: true, firstName: true, lastName: true, designation: { select: { title: true } } },
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          designation: { select: { title: true } },
+        },
       },
       emergencyContacts: access.personal ? { orderBy: { isPrimary: "desc" } } : false,
       financialInfo: access.financial,
-      user: { select: { id: true, isActive: true, lastLoginAt: true, roles: { select: { role: { select: { key: true, name: true } } } } } },
+      user: {
+        select: {
+          id: true,
+          isActive: true,
+          lastLoginAt: true,
+          roles: { select: { role: { select: { key: true, name: true } } } },
+        },
+      },
     },
   });
   if (!e) throw new NotFoundError("Employee");
   if (!access.full && e.status === "EXITED") throw new ForbiddenError();
   if (!access.personal) {
     // Strip personal fields for viewers without personal-data access.
-    Object.assign(e, { dateOfBirth: null, addressLine1: null, addressLine2: null, postalCode: null, personalEmail: null, bio: e.bio });
+    Object.assign(e, {
+      dateOfBirth: null,
+      addressLine1: null,
+      addressLine2: null,
+      postalCode: null,
+      personalEmail: null,
+      bio: e.bio,
+    });
   }
   return { employee: e, access };
 }
 
-async function assertRefs(tx: Tx, input: { departmentId?: string; designationId?: string; managerId?: string; shiftId?: string }) {
-  if (input.departmentId && !(await tx.department.findFirst({ where: { id: input.departmentId, deletedAt: null } })))
-    throw new ValidationError("Department not found.", { departmentId: ["Select a valid department"] });
-  if (input.designationId && !(await tx.designation.findFirst({ where: { id: input.designationId, deletedAt: null } })))
-    throw new ValidationError("Designation not found.", { designationId: ["Select a valid designation"] });
-  if (input.managerId && !(await tx.employee.findFirst({ where: { id: input.managerId, deletedAt: null, status: { not: "EXITED" } } })))
+async function assertRefs(
+  tx: Tx,
+  input: { departmentId?: string; designationId?: string; managerId?: string; shiftId?: string },
+) {
+  if (
+    input.departmentId &&
+    !(await tx.department.findFirst({ where: { id: input.departmentId, deletedAt: null } }))
+  )
+    throw new ValidationError("Department not found.", {
+      departmentId: ["Select a valid department"],
+    });
+  if (
+    input.designationId &&
+    !(await tx.designation.findFirst({ where: { id: input.designationId, deletedAt: null } }))
+  )
+    throw new ValidationError("Designation not found.", {
+      designationId: ["Select a valid designation"],
+    });
+  if (
+    input.managerId &&
+    !(await tx.employee.findFirst({
+      where: { id: input.managerId, deletedAt: null, status: { not: "EXITED" } },
+    }))
+  )
     throw new ValidationError("Manager not found.", { managerId: ["Select an active employee"] });
-  if (input.shiftId && !(await tx.shift.findFirst({ where: { id: input.shiftId, deletedAt: null } })))
+  if (
+    input.shiftId &&
+    !(await tx.shift.findFirst({ where: { id: input.shiftId, deletedAt: null } }))
+  )
     throw new ValidationError("Shift not found.", { shiftId: ["Select a valid shift"] });
 }
 
 export async function createEmployee(actor: Actor, input: EmployeeCreateInput) {
   assertPermission(actor, "employee:create");
   const emailTaken = await db.employee.findUnique({ where: { workEmail: input.workEmail } });
-  const userTaken = input.createAccount ? await db.user.findUnique({ where: { email: input.workEmail } }) : null;
-  if (emailTaken || userTaken) throw new ValidationError("Work email is already in use.", { workEmail: ["Work email is already in use"] });
+  const userTaken = input.createAccount
+    ? await db.user.findUnique({ where: { email: input.workEmail } })
+    : null;
+  if (emailTaken || userTaken)
+    throw new ValidationError("Work email is already in use.", {
+      workEmail: ["Work email is already in use"],
+    });
 
   const passwordHash = input.createAccount ? await placeholderPasswordHash() : null;
   const today = todayKey();
   const result = await db.$transaction(async (tx) => {
     await assertRefs(tx, input);
-    const defaultShift = input.shiftId ? null : await tx.shift.findFirst({ where: { isDefault: true, deletedAt: null } });
+    const defaultShift = input.shiftId
+      ? null
+      : await tx.shift.findFirst({ where: { isDefault: true, deletedAt: null } });
     const code = formatCode("EMP", await nextSequence(tx, "employee"));
     let userId: string | null = null;
     if (passwordHash) {
       const role = await tx.role.findUniqueOrThrow({ where: { key: "EMPLOYEE" } });
       const user = await tx.user.create({
-        data: { email: input.workEmail, passwordHash, mustChangePassword: true, roles: { create: { roleId: role.id } } },
+        data: {
+          email: input.workEmail,
+          passwordHash,
+          mustChangePassword: true,
+          roles: { create: { roleId: role.id } },
+        },
       });
       userId = user.id;
     }
@@ -204,7 +272,9 @@ export async function createEmployee(actor: Actor, input: EmployeeCreateInput) {
         shiftId: input.shiftId ?? defaultShift?.id ?? null,
         dateOfBirth: dateOfBirth ? dateKeyToDb(dateOfBirth) : null,
         dateOfJoining: dateKeyToDb(dateOfJoining),
-        probationEndsOn: probationEndsOn ? dateKeyToDb(probationEndsOn) : dateKeyToDb(addDaysKey(dateOfJoining, 180)),
+        probationEndsOn: probationEndsOn
+          ? dateKeyToDb(probationEndsOn)
+          : dateKeyToDb(addDaysKey(dateOfJoining, 180)),
         status: "ONBOARDING",
       },
     });
@@ -213,12 +283,22 @@ export async function createEmployee(actor: Actor, input: EmployeeCreateInput) {
         employeeId: emp.id,
         changeType: "JOINED",
         effectiveDate: dateKeyToDb(dateOfJoining),
-        details: { departmentId: input.departmentId ?? null, designationId: input.designationId ?? null, managerId: input.managerId ?? null },
+        details: {
+          departmentId: input.departmentId ?? null,
+          designationId: input.designationId ?? null,
+          managerId: input.managerId ?? null,
+        },
         createdById: actor.id,
       },
     });
     if (input.managerId) {
-      await tx.reportingRelationship.create({ data: { employeeId: emp.id, managerId: input.managerId, startDate: dateKeyToDb(dateOfJoining) } });
+      await tx.reportingRelationship.create({
+        data: {
+          employeeId: emp.id,
+          managerId: input.managerId,
+          startDate: dateKeyToDb(dateOfJoining),
+        },
+      });
     }
     await tx.checklistItem.createMany({
       data: ONBOARDING_TEMPLATE.map((t, i) => ({
@@ -256,12 +336,20 @@ export async function createEmployee(actor: Actor, input: EmployeeCreateInput) {
 }
 
 /** Throws if assigning `managerId` to `employeeId` would create a reporting cycle. */
-export async function assertNoReportingCycle(employeeId: string, managerId: string | undefined | null) {
+export async function assertNoReportingCycle(
+  employeeId: string,
+  managerId: string | undefined | null,
+) {
   if (!managerId) return;
-  if (managerId === employeeId) throw new ValidationError("An employee cannot report to themselves.", { managerId: ["Cannot report to self"] });
+  if (managerId === employeeId)
+    throw new ValidationError("An employee cannot report to themselves.", {
+      managerId: ["Cannot report to self"],
+    });
   const subtree = await reportingTreeIds(employeeId);
   if (subtree.includes(managerId)) {
-    throw new ValidationError("This would create a circular reporting line.", { managerId: ["Selected manager reports to this employee"] });
+    throw new ValidationError("This would create a circular reporting line.", {
+      managerId: ["Selected manager reports to this employee"],
+    });
   }
 }
 
@@ -270,13 +358,22 @@ export async function updateEmployee(actor: Actor, input: EmployeeUpdateInput) {
   const before = await db.employee.findFirst({ where: { id: input.id, deletedAt: null } });
   if (!before) throw new NotFoundError("Employee");
   if (input.status === "EXITED" && before.status !== "EXITED") {
-    throw new ValidationError("Use the offboarding workflow to exit an employee.", { status: ["Use offboarding to exit an employee"] });
+    throw new ValidationError("Use the offboarding workflow to exit an employee.", {
+      status: ["Use offboarding to exit an employee"],
+    });
   }
   await assertNoReportingCycle(input.id, input.managerId);
   if (input.workEmail !== before.workEmail) {
-    const clash = await db.employee.findFirst({ where: { workEmail: input.workEmail, id: { not: input.id } } });
-    const userClash = await db.user.findFirst({ where: { email: input.workEmail, id: { not: before.userId ?? "" } } });
-    if (clash || userClash) throw new ValidationError("Work email is already in use.", { workEmail: ["Work email is already in use"] });
+    const clash = await db.employee.findFirst({
+      where: { workEmail: input.workEmail, id: { not: input.id } },
+    });
+    const userClash = await db.user.findFirst({
+      where: { email: input.workEmail, id: { not: before.userId ?? "" } },
+    });
+    if (clash || userClash)
+      throw new ValidationError("Work email is already in use.", {
+        workEmail: ["Work email is already in use"],
+      });
   }
   const today = todayKey();
   await db.$transaction(async (tx) => {
@@ -337,38 +434,88 @@ function diffObject(a: Record<string, unknown>, b: Record<string, unknown>) {
 }
 
 /** Writes EmploymentHistory + ReportingRelationship rows for job-related changes. */
-async function recordJobChanges(tx: Tx, actor: Actor, before: EmpRow, after: EmpRow, effectiveKey: string, remarks?: string) {
+async function recordJobChanges(
+  tx: Tx,
+  actor: Actor,
+  before: EmpRow,
+  after: EmpRow,
+  effectiveKey: string,
+  remarks?: string,
+) {
   const effectiveDate = dateKeyToDb(effectiveKey);
-  const base = { employeeId: after.id, effectiveDate, remarks: remarks ?? null, createdById: actor.id };
+  const base = {
+    employeeId: after.id,
+    effectiveDate,
+    remarks: remarks ?? null,
+    createdById: actor.id,
+  };
   if (before.departmentId !== after.departmentId) {
-    await tx.employmentHistory.create({ data: { ...base, changeType: "TRANSFER", details: { fromDepartmentId: before.departmentId, toDepartmentId: after.departmentId } } });
+    await tx.employmentHistory.create({
+      data: {
+        ...base,
+        changeType: "TRANSFER",
+        details: { fromDepartmentId: before.departmentId, toDepartmentId: after.departmentId },
+      },
+    });
   }
   if (before.designationId !== after.designationId) {
     const [from, to] = await Promise.all([
-      before.designationId ? tx.designation.findUnique({ where: { id: before.designationId } }) : null,
-      after.designationId ? tx.designation.findUnique({ where: { id: after.designationId } }) : null,
+      before.designationId
+        ? tx.designation.findUnique({ where: { id: before.designationId } })
+        : null,
+      after.designationId
+        ? tx.designation.findUnique({ where: { id: after.designationId } })
+        : null,
     ]);
     const promotion = !!from && !!to && to.level > from.level;
     await tx.employmentHistory.create({
-      data: { ...base, changeType: promotion ? "PROMOTION" : "DESIGNATION_CHANGE", details: { from: from?.title ?? null, to: to?.title ?? null } },
+      data: {
+        ...base,
+        changeType: promotion ? "PROMOTION" : "DESIGNATION_CHANGE",
+        details: { from: from?.title ?? null, to: to?.title ?? null },
+      },
     });
   }
   if (before.managerId !== after.managerId) {
-    await tx.reportingRelationship.updateMany({ where: { employeeId: after.id, type: "DIRECT", endDate: null }, data: { endDate: effectiveDate } });
+    await tx.reportingRelationship.updateMany({
+      where: { employeeId: after.id, type: "DIRECT", endDate: null },
+      data: { endDate: effectiveDate },
+    });
     if (after.managerId) {
-      await tx.reportingRelationship.create({ data: { employeeId: after.id, managerId: after.managerId, startDate: effectiveDate } });
+      await tx.reportingRelationship.create({
+        data: { employeeId: after.id, managerId: after.managerId, startDate: effectiveDate },
+      });
     }
-    await tx.employmentHistory.create({ data: { ...base, changeType: "MANAGER_CHANGE", details: { fromManagerId: before.managerId, toManagerId: after.managerId } } });
+    await tx.employmentHistory.create({
+      data: {
+        ...base,
+        changeType: "MANAGER_CHANGE",
+        details: { fromManagerId: before.managerId, toManagerId: after.managerId },
+      },
+    });
   }
   if (before.status !== after.status) {
-    await tx.employmentHistory.create({ data: { ...base, changeType: "STATUS_CHANGE", details: { from: before.status, to: after.status } } });
+    await tx.employmentHistory.create({
+      data: {
+        ...base,
+        changeType: "STATUS_CHANGE",
+        details: { from: before.status, to: after.status },
+      },
+    });
   }
 }
 
 /** Department / designation / manager change with an explicit effective date. */
 export async function transferEmployee(
   actor: Actor,
-  input: { employeeId: string; departmentId?: string; designationId?: string; managerId?: string; effectiveDate: string; remarks?: string },
+  input: {
+    employeeId: string;
+    departmentId?: string;
+    designationId?: string;
+    managerId?: string;
+    effectiveDate: string;
+    remarks?: string;
+  },
 ) {
   assertPermission(actor, "employee:update");
   const before = await db.employee.findFirst({ where: { id: input.employeeId, deletedAt: null } });
@@ -378,7 +525,11 @@ export async function transferEmployee(
     await assertRefs(tx, input);
     const after = await tx.employee.update({
       where: { id: input.employeeId },
-      data: { departmentId: input.departmentId ?? null, designationId: input.designationId ?? null, managerId: input.managerId ?? null },
+      data: {
+        departmentId: input.departmentId ?? null,
+        designationId: input.designationId ?? null,
+        managerId: input.managerId ?? null,
+      },
     });
     await recordJobChanges(tx, actor, before, after, input.effectiveDate, input.remarks);
     await syncDerivedRoles(tx, [before.managerId, after.managerId]);
@@ -387,8 +538,17 @@ export async function transferEmployee(
       entityType: "Employee",
       entityId: input.employeeId,
       summary: `Transfer/reporting change for ${before.employeeCode}`,
-      before: { departmentId: before.departmentId, designationId: before.designationId, managerId: before.managerId },
-      after: { departmentId: after.departmentId, designationId: after.designationId, managerId: after.managerId, effectiveDate: input.effectiveDate },
+      before: {
+        departmentId: before.departmentId,
+        designationId: before.designationId,
+        managerId: before.managerId,
+      },
+      after: {
+        departmentId: after.departmentId,
+        designationId: after.designationId,
+        managerId: after.managerId,
+        effectiveDate: input.effectiveDate,
+      },
     });
   });
   await notifyEmployees([input.employeeId], {
@@ -399,19 +559,41 @@ export async function transferEmployee(
   });
 }
 
-export async function initiateOffboarding(actor: Actor, input: { employeeId: string; exitDate: string; exitReason: string }) {
+export async function initiateOffboarding(
+  actor: Actor,
+  input: { employeeId: string; exitDate: string; exitReason: string },
+) {
   assertPermission(actor, "employee:archive");
   const emp = await db.employee.findFirst({ where: { id: input.employeeId, deletedAt: null } });
   if (!emp) throw new NotFoundError("Employee");
   if (emp.status === "EXITED") throw new ConflictError("Employee has already exited.");
   if (actor.employeeId === emp.id) throw new ForbiddenError("You cannot offboard yourself.");
-  if (input.exitDate < dbDateToKey(emp.dateOfJoining)) throw new ValidationError("Exit date cannot be before the joining date.", { exitDate: ["Must be after joining date"] });
-  await db.$transaction(async (tx) => {
-    await tx.employee.update({ where: { id: emp.id }, data: { status: "ON_NOTICE", exitDate: dateKeyToDb(input.exitDate), exitReason: input.exitReason } });
-    await tx.employmentHistory.create({
-      data: { employeeId: emp.id, changeType: "STATUS_CHANGE", effectiveDate: dateKeyToDb(todayKey()), details: { from: emp.status, to: "ON_NOTICE", exitDate: input.exitDate }, remarks: input.exitReason, createdById: actor.id },
+  if (input.exitDate < dbDateToKey(emp.dateOfJoining))
+    throw new ValidationError("Exit date cannot be before the joining date.", {
+      exitDate: ["Must be after joining date"],
     });
-    const existing = await tx.checklistItem.count({ where: { employeeId: emp.id, type: "OFFBOARDING" } });
+  await db.$transaction(async (tx) => {
+    await tx.employee.update({
+      where: { id: emp.id },
+      data: {
+        status: "ON_NOTICE",
+        exitDate: dateKeyToDb(input.exitDate),
+        exitReason: input.exitReason,
+      },
+    });
+    await tx.employmentHistory.create({
+      data: {
+        employeeId: emp.id,
+        changeType: "STATUS_CHANGE",
+        effectiveDate: dateKeyToDb(todayKey()),
+        details: { from: emp.status, to: "ON_NOTICE", exitDate: input.exitDate },
+        remarks: input.exitReason,
+        createdById: actor.id,
+      },
+    });
+    const existing = await tx.checklistItem.count({
+      where: { employeeId: emp.id, type: "OFFBOARDING" },
+    });
     if (!existing) {
       await tx.checklistItem.createMany({
         data: OFFBOARDING_TEMPLATE.map((t, i) => ({
@@ -425,9 +607,20 @@ export async function initiateOffboarding(actor: Actor, input: { employeeId: str
         })),
       });
     }
-    await writeAudit(tx, actor, { action: "employee.offboarding_started", entityType: "Employee", entityId: emp.id, summary: `Offboarding ${emp.employeeCode}, exit ${input.exitDate}`, after: input });
+    await writeAudit(tx, actor, {
+      action: "employee.offboarding_started",
+      entityType: "Employee",
+      entityId: emp.id,
+      summary: `Offboarding ${emp.employeeCode}, exit ${input.exitDate}`,
+      after: input,
+    });
   });
-  await notifyEmployees([emp.managerId], { type: "employee.offboarding", title: "Team member offboarding", body: `${emp.firstName} ${emp.lastName}'s last working day is ${input.exitDate}.`, link: `/employees/${emp.id}` });
+  await notifyEmployees([emp.managerId], {
+    type: "employee.offboarding",
+    title: "Team member offboarding",
+    body: `${emp.firstName} ${emp.lastName}'s last working day is ${input.exitDate}.`,
+    link: `/employees/${emp.id}`,
+  });
 }
 
 /**
@@ -437,45 +630,107 @@ export async function initiateOffboarding(actor: Actor, input: { employeeId: str
  */
 export async function completeOffboarding(actor: Actor, employeeId: string) {
   assertPermission(actor, "employee:archive");
-  const emp = await db.employee.findFirst({ where: { id: employeeId, deletedAt: null }, include: { directReports: { where: { deletedAt: null } }, headOfDepartment: true } });
+  const emp = await db.employee.findFirst({
+    where: { id: employeeId, deletedAt: null },
+    include: { directReports: { where: { deletedAt: null } }, headOfDepartment: true },
+  });
   if (!emp) throw new NotFoundError("Employee");
-  if (emp.status !== "ON_NOTICE") throw new ConflictError("Start offboarding before completing it.");
+  if (emp.status !== "ON_NOTICE")
+    throw new ConflictError("Start offboarding before completing it.");
   const today = todayKey();
   const exitKey = emp.exitDate ? dbDateToKey(emp.exitDate) : today;
   const reportIds = emp.directReports.map((r) => r.id);
   await db.$transaction(async (tx) => {
-    await tx.employee.update({ where: { id: emp.id }, data: { status: "EXITED", exitDate: dateKeyToDb(exitKey) } });
+    await tx.employee.update({
+      where: { id: emp.id },
+      data: { status: "EXITED", exitDate: dateKeyToDb(exitKey) },
+    });
     if (emp.userId) {
       await tx.user.update({ where: { id: emp.userId }, data: { isActive: false } });
       await tx.session.deleteMany({ where: { userId: emp.userId } });
     }
-    await tx.reportingRelationship.updateMany({ where: { OR: [{ employeeId: emp.id }, { managerId: emp.id }], endDate: null }, data: { endDate: dateKeyToDb(exitKey) } });
+    await tx.reportingRelationship.updateMany({
+      where: { OR: [{ employeeId: emp.id }, { managerId: emp.id }], endDate: null },
+      data: { endDate: dateKeyToDb(exitKey) },
+    });
     for (const r of emp.directReports) {
       await tx.employee.update({ where: { id: r.id }, data: { managerId: emp.managerId } });
-      if (emp.managerId) await tx.reportingRelationship.create({ data: { employeeId: r.id, managerId: emp.managerId, startDate: dateKeyToDb(exitKey) } });
-      await tx.employmentHistory.create({ data: { employeeId: r.id, changeType: "MANAGER_CHANGE", effectiveDate: dateKeyToDb(exitKey), details: { fromManagerId: emp.id, toManagerId: emp.managerId }, remarks: "Previous manager exited", createdById: actor.id } });
+      if (emp.managerId)
+        await tx.reportingRelationship.create({
+          data: { employeeId: r.id, managerId: emp.managerId, startDate: dateKeyToDb(exitKey) },
+        });
+      await tx.employmentHistory.create({
+        data: {
+          employeeId: r.id,
+          changeType: "MANAGER_CHANGE",
+          effectiveDate: dateKeyToDb(exitKey),
+          details: { fromManagerId: emp.id, toManagerId: emp.managerId },
+          remarks: "Previous manager exited",
+          createdById: actor.id,
+        },
+      });
     }
-    if (emp.headOfDepartment) await tx.department.update({ where: { id: emp.headOfDepartment.id }, data: { headId: null } });
-    const future = await tx.leaveRequest.findMany({ where: { employeeId: emp.id, status: { in: ["PENDING", "APPROVED", "MODIFICATION_REQUESTED"] }, startDate: { gt: dateKeyToDb(exitKey) } } });
+    if (emp.headOfDepartment)
+      await tx.department.update({
+        where: { id: emp.headOfDepartment.id },
+        data: { headId: null },
+      });
+    const future = await tx.leaveRequest.findMany({
+      where: {
+        employeeId: emp.id,
+        status: { in: ["PENDING", "APPROVED", "MODIFICATION_REQUESTED"] },
+        startDate: { gt: dateKeyToDb(exitKey) },
+      },
+    });
     for (const lr of future) {
-      await tx.leaveRequest.update({ where: { id: lr.id }, data: { status: "CANCELLED", cancelledAt: new Date() } });
+      await tx.leaveRequest.update({
+        where: { id: lr.id },
+        data: { status: "CANCELLED", cancelledAt: new Date() },
+      });
       const field = lr.status === "APPROVED" ? "used" : "pending";
-      await tx.leaveBalance.updateMany({ where: { employeeId: emp.id, leaveTypeId: lr.leaveTypeId, year: lr.startDate.getUTCFullYear() }, data: { [field]: { decrement: lr.days } } });
+      await tx.leaveBalance.updateMany({
+        where: {
+          employeeId: emp.id,
+          leaveTypeId: lr.leaveTypeId,
+          year: lr.startDate.getUTCFullYear(),
+        },
+        data: { [field]: { decrement: lr.days } },
+      });
     }
-    await tx.employmentHistory.create({ data: { employeeId: emp.id, changeType: "EXIT", effectiveDate: dateKeyToDb(exitKey), details: { reason: emp.exitReason }, createdById: actor.id } });
+    await tx.employmentHistory.create({
+      data: {
+        employeeId: emp.id,
+        changeType: "EXIT",
+        effectiveDate: dateKeyToDb(exitKey),
+        details: { reason: emp.exitReason },
+        createdById: actor.id,
+      },
+    });
     await syncDerivedRoles(tx, [emp.id, emp.managerId, ...reportIds]);
-    await writeAudit(tx, actor, { action: "employee.exited", entityType: "Employee", entityId: emp.id, summary: `${emp.employeeCode} exited; ${reportIds.length} reports reassigned` });
+    await writeAudit(tx, actor, {
+      action: "employee.exited",
+      entityType: "Employee",
+      entityId: emp.id,
+      summary: `${emp.employeeCode} exited; ${reportIds.length} reports reassigned`,
+    });
   });
 }
 
 /** Soft-delete a record created in error. Exited employees should not be archived — keep them for records. */
 export async function archiveEmployee(actor: Actor, employeeId: string, reason: string) {
   assertPermission(actor, "employee:archive");
-  const emp = await db.employee.findFirst({ where: { id: employeeId, deletedAt: null }, include: { _count: { select: { directReports: { where: { deletedAt: null } }, payrollRecords: true } } } });
+  const emp = await db.employee.findFirst({
+    where: { id: employeeId, deletedAt: null },
+    include: {
+      _count: { select: { directReports: { where: { deletedAt: null } }, payrollRecords: true } },
+    },
+  });
   if (!emp) throw new NotFoundError("Employee");
   if (actor.employeeId === emp.id) throw new ForbiddenError("You cannot archive yourself.");
-  if (emp._count.directReports > 0) throw new ConflictError("Reassign this employee's direct reports first.");
-  if (emp._count.payrollRecords > 0) throw new ConflictError("Employees with payroll history cannot be archived; use offboarding.");
+  if (emp._count.directReports > 0)
+    throw new ConflictError("Reassign this employee's direct reports first.");
+  if (emp._count.payrollRecords > 0)
+    throw new ConflictError("Employees with payroll history cannot be archived; use offboarding.");
   await db.$transaction(async (tx) => {
     await tx.employee.update({ where: { id: emp.id }, data: { deletedAt: new Date() } });
     await tx.department.updateMany({ where: { headId: emp.id }, data: { headId: null } });
@@ -484,7 +739,12 @@ export async function archiveEmployee(actor: Actor, employeeId: string, reason: 
       await tx.session.deleteMany({ where: { userId: emp.userId } });
     }
     await syncDerivedRoles(tx, [emp.managerId]);
-    await writeAudit(tx, actor, { action: "employee.archive", entityType: "Employee", entityId: emp.id, summary: `Archived ${emp.employeeCode}: ${reason}` });
+    await writeAudit(tx, actor, {
+      action: "employee.archive",
+      entityType: "Employee",
+      entityId: emp.id,
+      summary: `Archived ${emp.employeeCode}: ${reason}`,
+    });
   });
 }
 
@@ -492,59 +752,139 @@ export async function toggleChecklistItem(actor: Actor, itemId: string, done: bo
   const item = await db.checklistItem.findUnique({ where: { id: itemId } });
   if (!item) throw new NotFoundError("Checklist item");
   const isOwnEmployeeTask = item.owner === "EMPLOYEE" && actor.employeeId === item.employeeId;
-  const isManagerTask = item.owner === "MANAGER" && (await canAccessEmployee(actor, "employee", item.employeeId)) && actor.employeeId !== item.employeeId;
-  if (!actor.permissions.has("employee:update") && !isOwnEmployeeTask && !isManagerTask) throw new ForbiddenError();
+  const isManagerTask =
+    item.owner === "MANAGER" &&
+    (await canAccessEmployee(actor, "employee", item.employeeId)) &&
+    actor.employeeId !== item.employeeId;
+  if (!actor.permissions.has("employee:update") && !isOwnEmployeeTask && !isManagerTask)
+    throw new ForbiddenError();
   await db.$transaction(async (tx) => {
-    await tx.checklistItem.update({ where: { id: itemId }, data: { completedAt: done ? new Date() : null, completedById: done ? actor.id : null } });
+    await tx.checklistItem.update({
+      where: { id: itemId },
+      data: { completedAt: done ? new Date() : null, completedById: done ? actor.id : null },
+    });
     if (done && item.type === "ONBOARDING") {
-      const remaining = await tx.checklistItem.count({ where: { employeeId: item.employeeId, type: "ONBOARDING", completedAt: null } });
+      const remaining = await tx.checklistItem.count({
+        where: { employeeId: item.employeeId, type: "ONBOARDING", completedAt: null },
+      });
       const emp = await tx.employee.findUniqueOrThrow({ where: { id: item.employeeId } });
       if (remaining === 0 && emp.status === "ONBOARDING") {
         await tx.employee.update({ where: { id: emp.id }, data: { status: "ACTIVE" } });
-        await tx.employmentHistory.create({ data: { employeeId: emp.id, changeType: "STATUS_CHANGE", effectiveDate: dateKeyToDb(todayKey()), details: { from: "ONBOARDING", to: "ACTIVE" }, remarks: "Onboarding checklist completed", createdById: actor.id } });
+        await tx.employmentHistory.create({
+          data: {
+            employeeId: emp.id,
+            changeType: "STATUS_CHANGE",
+            effectiveDate: dateKeyToDb(todayKey()),
+            details: { from: "ONBOARDING", to: "ACTIVE" },
+            remarks: "Onboarding checklist completed",
+            createdById: actor.id,
+          },
+        });
       }
     }
-    await writeAudit(tx, actor, { action: done ? "checklist.complete" : "checklist.reopen", entityType: "ChecklistItem", entityId: itemId, summary: item.title });
+    await writeAudit(tx, actor, {
+      action: done ? "checklist.complete" : "checklist.reopen",
+      entityType: "ChecklistItem",
+      entityId: itemId,
+      summary: item.title,
+    });
   });
 }
 
-export async function upsertEmergencyContact(actor: Actor, input: { id?: string; employeeId: string; name: string; relationship: string; phone: string; email?: string; isPrimary: boolean }) {
+export async function upsertEmergencyContact(
+  actor: Actor,
+  input: {
+    id?: string;
+    employeeId: string;
+    name: string;
+    relationship: string;
+    phone: string;
+    email?: string;
+    isPrimary: boolean;
+  },
+) {
   const allowed = actor.employeeId === input.employeeId || actor.permissions.has("employee:update");
   if (!allowed) throw new ForbiddenError();
   await db.$transaction(async (tx) => {
-    if (input.isPrimary) await tx.emergencyContact.updateMany({ where: { employeeId: input.employeeId }, data: { isPrimary: false } });
+    if (input.isPrimary)
+      await tx.emergencyContact.updateMany({
+        where: { employeeId: input.employeeId },
+        data: { isPrimary: false },
+      });
     const { id, ...data } = input;
     if (id) {
-      const existing = await tx.emergencyContact.findFirst({ where: { id, employeeId: input.employeeId } });
+      const existing = await tx.emergencyContact.findFirst({
+        where: { id, employeeId: input.employeeId },
+      });
       if (!existing) throw new NotFoundError("Contact");
-      await tx.emergencyContact.update({ where: { id }, data: { ...data, email: data.email ?? null } });
+      await tx.emergencyContact.update({
+        where: { id },
+        data: { ...data, email: data.email ?? null },
+      });
     } else {
       const count = await tx.emergencyContact.count({ where: { employeeId: input.employeeId } });
       if (count >= 5) throw new ValidationError("A maximum of 5 emergency contacts is allowed.");
       await tx.emergencyContact.create({ data: { ...data, email: data.email ?? null } });
     }
-    await writeAudit(tx, actor, { action: id ? "emergency_contact.update" : "emergency_contact.create", entityType: "Employee", entityId: input.employeeId, summary: `Emergency contact ${input.name}` });
+    await writeAudit(tx, actor, {
+      action: id ? "emergency_contact.update" : "emergency_contact.create",
+      entityType: "Employee",
+      entityId: input.employeeId,
+      summary: `Emergency contact ${input.name}`,
+    });
   });
 }
 
 export async function deleteEmergencyContact(actor: Actor, contactId: string) {
   const c = await db.emergencyContact.findUnique({ where: { id: contactId } });
   if (!c) throw new NotFoundError("Contact");
-  if (actor.employeeId !== c.employeeId && !actor.permissions.has("employee:update")) throw new ForbiddenError();
+  if (actor.employeeId !== c.employeeId && !actor.permissions.has("employee:update"))
+    throw new ForbiddenError();
   await db.$transaction(async (tx) => {
     await tx.emergencyContact.delete({ where: { id: contactId } });
-    await writeAudit(tx, actor, { action: "emergency_contact.delete", entityType: "Employee", entityId: c.employeeId, summary: `Removed contact ${c.name}` });
+    await writeAudit(tx, actor, {
+      action: "emergency_contact.delete",
+      entityType: "Employee",
+      entityId: c.employeeId,
+      summary: `Removed contact ${c.name}`,
+    });
   });
 }
 
-export async function updateFinancialInfo(actor: Actor, input: { employeeId: string; panNumber?: string; uanNumber?: string; esiNumber?: string; bankName?: string; bankAccountNumber?: string; bankIfsc?: string }) {
-  if (!actor.permissions.has("employee:sensitive:read") || !actor.permissions.has("employee:update")) throw new ForbiddenError();
+export async function updateFinancialInfo(
+  actor: Actor,
+  input: {
+    employeeId: string;
+    panNumber?: string;
+    uanNumber?: string;
+    esiNumber?: string;
+    bankName?: string;
+    bankAccountNumber?: string;
+    bankIfsc?: string;
+  },
+) {
+  if (
+    !actor.permissions.has("employee:sensitive:read") ||
+    !actor.permissions.has("employee:update")
+  )
+    throw new ForbiddenError();
   const { employeeId, ...rest } = input;
   const data = Object.fromEntries(Object.entries(rest).map(([k, v]) => [k, v ?? null]));
   await db.$transaction(async (tx) => {
-    await tx.employeeFinancialInfo.upsert({ where: { employeeId }, update: data, create: { employeeId, ...data } });
+    await tx.employeeFinancialInfo.upsert({
+      where: { employeeId },
+      update: data,
+      create: { employeeId, ...data },
+    });
     // Values are redacted by the audit writer; only the fact of change is recorded.
-    await writeAudit(tx, actor, { action: "employee.financial_update", entityType: "Employee", entityId: employeeId, summary: `Updated statutory/bank details (${Object.keys(rest).filter((k) => rest[k as keyof typeof rest]).join(", ")})` });
+    await writeAudit(tx, actor, {
+      action: "employee.financial_update",
+      entityType: "Employee",
+      entityId: employeeId,
+      summary: `Updated statutory/bank details (${Object.keys(rest)
+        .filter((k) => rest[k as keyof typeof rest])
+        .join(", ")})`,
+    });
   });
 }
 
@@ -561,7 +901,10 @@ export async function employeeHistory(actor: Actor, employeeId: string) {
   const access = await profileAccess(actor, employeeId);
   if (!access.full) throw new ForbiddenError();
   const [history, depts, desigs, managers] = await Promise.all([
-    db.employmentHistory.findMany({ where: { employeeId }, orderBy: [{ effectiveDate: "desc" }, { createdAt: "desc" }] }),
+    db.employmentHistory.findMany({
+      where: { employeeId },
+      orderBy: [{ effectiveDate: "desc" }, { createdAt: "desc" }],
+    }),
     db.department.findMany({ select: { id: true, name: true } }),
     db.designation.findMany({ select: { id: true, title: true } }),
     db.employee.findMany({ select: { id: true, firstName: true, lastName: true } }),
@@ -570,10 +913,17 @@ export async function employeeHistory(actor: Actor, employeeId: string) {
   for (const d of depts) names[d.id] = d.name;
   for (const d of desigs) names[d.id] = d.title;
   for (const m of managers) names[m.id] = `${m.firstName} ${m.lastName}`;
-  return history.map((h) => ({ ...h, describe: describeHistory(h.changeType, h.details as Record<string, unknown>, names) }));
+  return history.map((h) => ({
+    ...h,
+    describe: describeHistory(h.changeType, h.details as Record<string, unknown>, names),
+  }));
 }
 
-function describeHistory(type: string, d: Record<string, unknown>, names: Record<string, string>): string {
+function describeHistory(
+  type: string,
+  d: Record<string, unknown>,
+  names: Record<string, string>,
+): string {
   const n = (id: unknown) => (typeof id === "string" ? (names[id] ?? "—") : "—");
   switch (type) {
     case "JOINED":

@@ -14,7 +14,17 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { logoutAction } from "@/server/actions/auth";
 
-export function UserMenu({ name, email, roles, hasEmployee }: { name: string; email: string; roles: string[]; hasEmployee: boolean }) {
+export function UserMenu({
+  name,
+  email,
+  roles,
+  hasEmployee,
+}: {
+  name: string;
+  email: string;
+  roles: string[];
+  hasEmployee: boolean;
+}) {
   const initials = name
     .split(" ")
     .map((p) => p[0])

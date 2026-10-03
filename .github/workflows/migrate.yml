@@ -1,0 +1,47 @@
+name: Database migrations
+
+# Production/staging schema changes are applied deliberately, never from a
+# Vercel build. Each environment is a GitHub Environment with required
+# reviewers and its own DATABASE_URL / DIRECT_DATABASE_URL secrets.
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Target environment
+        type: choice
+        options: [staging, production]
+        required: true
+      confirm_backup:
+        description: "I confirm a verified backup was taken within the last hour (required for production)"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    steps:
+      - name: Require backup confirmation for production
+        if: inputs.environment == 'production' && !inputs.confirm_backup
+        run: |
+          echo "::error::Production migrations require a verified backup. Re-run with confirm_backup checked."
+          exit 1
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - run: npm ci
+      - name: Show pending migrations
+        run: npx prisma migrate status || true
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DIRECT_DATABASE_URL: ${{ secrets.DIRECT_DATABASE_URL }}
+      - name: Apply migrations
+        run: npx prisma migrate deploy
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DIRECT_DATABASE_URL: ${{ secrets.DIRECT_DATABASE_URL }}

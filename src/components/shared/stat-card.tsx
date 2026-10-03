@@ -26,7 +26,10 @@ export function StatCard({
     </Card>
   );
   return href ? (
-    <Link href={href} className="focus-visible:ring-ring/50 rounded-xl outline-none focus-visible:ring-[3px]">
+    <Link
+      href={href}
+      className="focus-visible:ring-ring/50 rounded-xl outline-none focus-visible:ring-[3px]"
+    >
       {body}
     </Link>
   ) : (

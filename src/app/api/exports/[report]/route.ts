@@ -24,8 +24,17 @@ const REPORTS: Record<string, Builder> = {
     return { rows: await exportEmployees(actor, f), title: "Employees" };
   },
   "attendance-monthly": async (actor, q) => {
-    const m = /^(\d{4})-(\d{2})$/.exec(q.get("month") ?? "") ?? [null, todayKey().slice(0, 4), todayKey().slice(5, 7)];
-    const rows = await monthlyReport(actor, Number(m[1]), Number(m[2]), q.get("departmentId") || undefined);
+    const m = /^(\d{4})-(\d{2})$/.exec(q.get("month") ?? "") ?? [
+      null,
+      todayKey().slice(0, 4),
+      todayKey().slice(5, 7),
+    ];
+    const rows = await monthlyReport(
+      actor,
+      Number(m[1]),
+      Number(m[2]),
+      q.get("departmentId") || undefined,
+    );
     return {
       title: `Attendance ${m[1]}-${m[2]}`,
       rows: rows.map((r) => ({
@@ -46,7 +55,12 @@ const REPORTS: Record<string, Builder> = {
   },
   leave: async (actor, q) => {
     const year = Number(q.get("year")) || Number(todayKey().slice(0, 4));
-    const rows = await leaveReport(actor, { year, departmentId: q.get("departmentId") || undefined, status: (q.get("status") || undefined) as LeaveStatus | undefined, leaveTypeId: q.get("leaveTypeId") || undefined });
+    const rows = await leaveReport(actor, {
+      year,
+      departmentId: q.get("departmentId") || undefined,
+      status: (q.get("status") || undefined) as LeaveStatus | undefined,
+      leaveTypeId: q.get("leaveTypeId") || undefined,
+    });
     return {
       title: `Leave ${year}`,
       rows: rows.map((r) => ({
@@ -65,14 +79,25 @@ const REPORTS: Record<string, Builder> = {
   ...extraReports,
 };
 
-export const GET = withApi<{ params: Promise<{ report: string }> }>(async (req, actor, { params }) => {
-  const { report } = await params;
-  const builder = REPORTS[report];
-  if (!builder) return NextResponse.json({ error: "Unknown report" }, { status: 404 });
-  assertPermission(actor, "report:export");
-  const q = new URL(req.url).searchParams;
-  const format = ["csv", "xlsx", "pdf"].includes(q.get("format") ?? "") ? q.get("format")! : "csv";
-  const { rows, title } = await builder(actor, q);
-  await db.$transaction((tx) => writeAudit(tx, actor, { action: "report.export", entityType: "Report", entityId: report, summary: `${title} (${format}, ${rows.length} rows)` }));
-  return exportResponse(rows, format, report, title);
-});
+export const GET = withApi<{ params: Promise<{ report: string }> }>(
+  async (req, actor, { params }) => {
+    const { report } = await params;
+    const builder = REPORTS[report];
+    if (!builder) return NextResponse.json({ error: "Unknown report" }, { status: 404 });
+    assertPermission(actor, "report:export");
+    const q = new URL(req.url).searchParams;
+    const format = ["csv", "xlsx", "pdf"].includes(q.get("format") ?? "")
+      ? q.get("format")!
+      : "csv";
+    const { rows, title } = await builder(actor, q);
+    await db.$transaction((tx) =>
+      writeAudit(tx, actor, {
+        action: "report.export",
+        entityType: "Report",
+        entityId: report,
+        summary: `${title} (${format}, ${rows.length} rows)`,
+      }),
+    );
+    return exportResponse(rows, format, report, title);
+  },
+);

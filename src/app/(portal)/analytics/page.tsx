@@ -6,7 +6,14 @@ import { humanize } from "@/lib/utils";
 import { hrAnalytics } from "@/server/services/analytics.service";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { PageHeader } from "@/components/shared/page-header";
 import { FilterBar } from "@/components/shared/filter-bar";
 import { StatCard } from "@/components/shared/stat-card";
@@ -17,16 +24,30 @@ export const metadata = { title: "HR analytics" };
 
 const k = (v?: string) => (v && /^\d{4}-\d{2}-\d{2}$/.test(v) ? v : undefined);
 
-export default async function AnalyticsPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
+export default async function AnalyticsPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | undefined>>;
+}) {
   const actor = await requirePagePermission("report:read");
   const sp = await searchParams;
   let to = k(sp.to) ?? todayKey();
   let from = k(sp.from) ?? addDaysKey(to, -89);
   if (from > to) [from, to] = [to, from];
   const departmentId = sp.departmentId || undefined;
-  const [a, depts] = await Promise.all([hrAnalytics(actor, { from, to, departmentId }), db.department.findMany({ where: { deletedAt: null }, select: { id: true, name: true }, orderBy: { name: "asc" } })]);
-  const q = new URLSearchParams(Object.entries({ from, to, departmentId }).filter(([, v]) => !!v) as [string, string][]).toString();
-  const humanized = (list: { name: string; value: number }[]) => list.map((x) => ({ ...x, name: humanize(x.name) }));
+  const [a, depts] = await Promise.all([
+    hrAnalytics(actor, { from, to, departmentId }),
+    db.department.findMany({
+      where: { deletedAt: null },
+      select: { id: true, name: true },
+      orderBy: { name: "asc" },
+    }),
+  ]);
+  const q = new URLSearchParams(
+    Object.entries({ from, to, departmentId }).filter(([, v]) => !!v) as [string, string][],
+  ).toString();
+  const humanized = (list: { name: string; value: number }[]) =>
+    list.map((x) => ({ ...x, name: humanize(x.name) }));
   return (
     <>
       <PageHeader
@@ -48,15 +69,31 @@ export default async function AnalyticsPage({ searchParams }: { searchParams: Pr
         filters={[
           { name: "from", label: "From", type: "date" },
           { name: "to", label: "To", type: "date" },
-          { name: "departmentId", label: "Department", options: depts.map((d) => ({ value: d.id, label: d.name })) },
+          {
+            name: "departmentId",
+            label: "Department",
+            options: depts.map((d) => ({ value: d.id, label: d.name })),
+          },
         ]}
       />
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-6">
-        <StatCard label="Headcount" value={a.summary.headcount} hint={`Start of period: ${a.summary.startHeadcount}`} />
+        <StatCard
+          label="Headcount"
+          value={a.summary.headcount}
+          hint={`Start of period: ${a.summary.startHeadcount}`}
+        />
         <StatCard label="Joiners" value={a.summary.joiners} />
         <StatCard label="Exits" value={a.summary.exits} />
-        <StatCard label="Turnover" value={`${a.summary.turnoverRate}%`} hint={`${a.summary.annualizedTurnover}% annualised`} />
-        <StatCard label="Attendance rate" value={a.summary.attendanceRate !== null ? `${a.summary.attendanceRate}%` : "—"} hint={`${a.summary.absences} absences`} />
+        <StatCard
+          label="Turnover"
+          value={`${a.summary.turnoverRate}%`}
+          hint={`${a.summary.annualizedTurnover}% annualised`}
+        />
+        <StatCard
+          label="Attendance rate"
+          value={a.summary.attendanceRate !== null ? `${a.summary.attendanceRate}%` : "—"}
+          hint={`${a.summary.absences} absences`}
+        />
         <StatCard label="Leave days taken" value={a.summary.leaveDays} />
       </div>
       <div className="grid gap-4 lg:grid-cols-2">
@@ -66,7 +103,13 @@ export default async function AnalyticsPage({ searchParams }: { searchParams: Pr
             <CardDescription>Month-end headcount</CardDescription>
           </CardHeader>
           <CardContent>
-            <TrendChart title="Workforce trend" data={a.trend} xKey="month" xFormat="month" series={[{ key: "headcount", label: "Headcount", color: "var(--chart-1)" }]} />
+            <TrendChart
+              title="Workforce trend"
+              data={a.trend}
+              xKey="month"
+              xFormat="month"
+              series={[{ key: "headcount", label: "Headcount", color: "var(--chart-1)" }]}
+            />
           </CardContent>
         </Card>
         <Card>
@@ -101,7 +144,12 @@ export default async function AnalyticsPage({ searchParams }: { searchParams: Pr
             <CardTitle>Leave taken by department</CardTitle>
           </CardHeader>
           <CardContent>
-            <SimpleBarChart layout="vertical" valueLabel="Days" data={a.leaveByDept} color="var(--chart-3)" />
+            <SimpleBarChart
+              layout="vertical"
+              valueLabel="Days"
+              data={a.leaveByDept}
+              color="var(--chart-3)"
+            />
           </CardContent>
         </Card>
         <Card>
@@ -118,7 +166,11 @@ export default async function AnalyticsPage({ searchParams }: { searchParams: Pr
             <CardDescription>Candidates added in period, by current stage</CardDescription>
           </CardHeader>
           <CardContent>
-            <SimpleBarChart layout="vertical" valueLabel="Candidates" data={humanized(a.recruitment)} />
+            <SimpleBarChart
+              layout="vertical"
+              valueLabel="Candidates"
+              data={humanized(a.recruitment)}
+            />
           </CardContent>
         </Card>
         <Card>
@@ -126,7 +178,11 @@ export default async function AnalyticsPage({ searchParams }: { searchParams: Pr
             <CardTitle>Employment type</CardTitle>
           </CardHeader>
           <CardContent>
-            <SimpleBarChart layout="vertical" valueLabel="Employees" data={humanized(a.byEmploymentType)} />
+            <SimpleBarChart
+              layout="vertical"
+              valueLabel="Employees"
+              data={humanized(a.byEmploymentType)}
+            />
           </CardContent>
         </Card>
         <Card>

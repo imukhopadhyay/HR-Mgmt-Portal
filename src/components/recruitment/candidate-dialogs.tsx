@@ -5,28 +5,77 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { z } from "zod";
-import { CalendarPlus, FileSignature, MessageSquare, Pencil, UserCheck, UserPlus } from "lucide-react";
+import {
+  CalendarPlus,
+  FileSignature,
+  MessageSquare,
+  Pencil,
+  UserCheck,
+  UserPlus,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { FormField, NativeSelect } from "@/components/shared/form-field";
 import { useAction } from "@/hooks/use-action";
 import { humanize } from "@/lib/utils";
-import { candidateSchema, feedbackSchema, hireSchema, interviewSchema, offerSchema, stageSchema } from "@/lib/validation/recruitment";
-import { generateOfferAction, hireCandidateAction, moveCandidateAction, saveCandidateAction, scheduleInterviewAction, submitFeedbackAction } from "@/server/actions/recruitment";
+import {
+  candidateSchema,
+  feedbackSchema,
+  hireSchema,
+  interviewSchema,
+  offerSchema,
+  stageSchema,
+} from "@/lib/validation/recruitment";
+import {
+  generateOfferAction,
+  hireCandidateAction,
+  moveCandidateAction,
+  saveCandidateAction,
+  scheduleInterviewAction,
+  submitFeedbackAction,
+} from "@/server/actions/recruitment";
 
 function useDialog() {
   const [open, setOpen] = useState(false);
   return { open, setOpen };
 }
 
-export function CandidateDialog({ recruitmentId, initial }: { recruitmentId: string; initial?: z.input<typeof candidateSchema> }) {
+export function CandidateDialog({
+  recruitmentId,
+  initial,
+}: {
+  recruitmentId: string;
+  initial?: z.input<typeof candidateSchema>;
+}) {
   const d = useDialog();
-  const form = useForm<z.input<typeof candidateSchema>>({ resolver: zodResolver(candidateSchema), defaultValues: initial ?? { recruitmentId, firstName: "", lastName: "", email: "" } });
-  const { execute, pending } = useAction(saveCandidateAction, { form, onSuccess: () => { d.setOpen(false); if (!initial) form.reset(); } });
+  const form = useForm<z.input<typeof candidateSchema>>({
+    resolver: zodResolver(candidateSchema),
+    defaultValues: initial ?? { recruitmentId, firstName: "", lastName: "", email: "" },
+  });
+  const { execute, pending } = useAction(saveCandidateAction, {
+    form,
+    onSuccess: () => {
+      d.setOpen(false);
+      if (!initial) form.reset();
+    },
+  });
   const e = form.formState.errors;
-  const f = (name: keyof z.input<typeof candidateSchema>, label: string, type = "text", required = false) => (
+  const f = (
+    name: keyof z.input<typeof candidateSchema>,
+    label: string,
+    type = "text",
+    required = false,
+  ) => (
     <FormField label={label} htmlFor={`cd-${name}`} required={required} error={e[name]?.message}>
       <Input type={type} {...form.register(name)} />
     </FormField>
@@ -47,9 +96,16 @@ export function CandidateDialog({ recruitmentId, initial }: { recruitmentId: str
       <DialogContent className="sm:max-w-xl">
         <DialogHeader>
           <DialogTitle>{initial ? "Edit candidate" : "Add candidate"}</DialogTitle>
-          <DialogDescription>Upload the resume from the candidate row after saving.</DialogDescription>
+          <DialogDescription>
+            Upload the resume from the candidate row after saving.
+          </DialogDescription>
         </DialogHeader>
-        <form id="cand-form" className="grid gap-4 sm:grid-cols-2" onSubmit={form.handleSubmit((v) => execute(v))} noValidate>
+        <form
+          id="cand-form"
+          className="grid gap-4 sm:grid-cols-2"
+          onSubmit={form.handleSubmit((v) => execute(v))}
+          noValidate
+        >
           {f("firstName", "First name", "text", true)}
           {f("lastName", "Last name", "text", true)}
           {f("email", "Email", "email", true)}
@@ -58,7 +114,12 @@ export function CandidateDialog({ recruitmentId, initial }: { recruitmentId: str
           {f("currentCompany", "Current company")}
           {f("experienceYears", "Experience (years)", "number")}
           {f("expectedCtc", "Expected CTC (₹)", "number")}
-          <FormField label="Notes" htmlFor="cd-notes" error={e.notes?.message} className="sm:col-span-2">
+          <FormField
+            label="Notes"
+            htmlFor="cd-notes"
+            error={e.notes?.message}
+            className="sm:col-span-2"
+          >
             <Textarea rows={3} {...form.register("notes")} />
           </FormField>
         </form>
@@ -83,8 +144,14 @@ const NEXT: Record<string, string[]> = {
 export function MoveStageDialog({ candidateId, stage }: { candidateId: string; stage: string }) {
   const d = useDialog();
   const options = NEXT[stage] ?? [];
-  const form = useForm<z.input<typeof stageSchema>>({ resolver: zodResolver(stageSchema), defaultValues: { candidateId, stage: (options[0] ?? "SCREENING") as "SCREENING", note: "" } });
-  const { execute, pending } = useAction(moveCandidateAction, { form, onSuccess: () => d.setOpen(false) });
+  const form = useForm<z.input<typeof stageSchema>>({
+    resolver: zodResolver(stageSchema),
+    defaultValues: { candidateId, stage: (options[0] ?? "SCREENING") as "SCREENING", note: "" },
+  });
+  const { execute, pending } = useAction(moveCandidateAction, {
+    form,
+    onSuccess: () => d.setOpen(false),
+  });
   if (!options.length) return null;
   return (
     <Dialog open={d.open} onOpenChange={d.setOpen}>
@@ -97,7 +164,12 @@ export function MoveStageDialog({ candidateId, stage }: { candidateId: string; s
         <DialogHeader>
           <DialogTitle>Move candidate</DialogTitle>
         </DialogHeader>
-        <form id="stage-form" className="grid gap-4" onSubmit={form.handleSubmit((v) => execute(v))} noValidate>
+        <form
+          id="stage-form"
+          className="grid gap-4"
+          onSubmit={form.handleSubmit((v) => execute(v))}
+          noValidate
+        >
           <FormField label="New stage" htmlFor="st-stage">
             <NativeSelect {...form.register("stage")}>
               {options.map((s) => (
@@ -121,10 +193,34 @@ export function MoveStageDialog({ candidateId, stage }: { candidateId: string; s
   );
 }
 
-export function ScheduleInterviewDialog({ candidateId, interviewers }: { candidateId: string; interviewers: { id: string; label: string }[] }) {
+export function ScheduleInterviewDialog({
+  candidateId,
+  interviewers,
+}: {
+  candidateId: string;
+  interviewers: { id: string; label: string }[];
+}) {
   const d = useDialog();
-  const form = useForm<z.input<typeof interviewSchema>>({ resolver: zodResolver(interviewSchema), defaultValues: { candidateId, round: "", date: "", time: "15:00", durationMinutes: 60, mode: "VIDEO", location: "", interviewerId: "" } });
-  const { execute, pending } = useAction(scheduleInterviewAction, { form, onSuccess: () => { d.setOpen(false); form.reset(); } });
+  const form = useForm<z.input<typeof interviewSchema>>({
+    resolver: zodResolver(interviewSchema),
+    defaultValues: {
+      candidateId,
+      round: "",
+      date: "",
+      time: "15:00",
+      durationMinutes: 60,
+      mode: "VIDEO",
+      location: "",
+      interviewerId: "",
+    },
+  });
+  const { execute, pending } = useAction(scheduleInterviewAction, {
+    form,
+    onSuccess: () => {
+      d.setOpen(false);
+      form.reset();
+    },
+  });
   const e = form.formState.errors;
   return (
     <Dialog open={d.open} onOpenChange={d.setOpen}>
@@ -136,10 +232,23 @@ export function ScheduleInterviewDialog({ candidateId, interviewers }: { candida
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Schedule interview</DialogTitle>
-          <DialogDescription>The interviewer is notified by email and in-app, with a calendar invite link.</DialogDescription>
+          <DialogDescription>
+            The interviewer is notified by email and in-app, with a calendar invite link.
+          </DialogDescription>
         </DialogHeader>
-        <form id="iv-form" className="grid gap-4 sm:grid-cols-2" onSubmit={form.handleSubmit((v) => execute(v))} noValidate>
-          <FormField label="Round" htmlFor="iv-round" required error={e.round?.message} className="sm:col-span-2">
+        <form
+          id="iv-form"
+          className="grid gap-4 sm:grid-cols-2"
+          onSubmit={form.handleSubmit((v) => execute(v))}
+          noValidate
+        >
+          <FormField
+            label="Round"
+            htmlFor="iv-round"
+            required
+            error={e.round?.message}
+            className="sm:col-span-2"
+          >
             <Input placeholder="e.g. Technical round 1" {...form.register("round")} />
           </FormField>
           <FormField label="Date" htmlFor="iv-date" required error={e.date?.message}>
@@ -158,7 +267,13 @@ export function ScheduleInterviewDialog({ candidateId, interviewers }: { candida
               <option value="PHONE">Phone</option>
             </NativeSelect>
           </FormField>
-          <FormField label="Interviewer" htmlFor="iv-int" required error={e.interviewerId?.message} className="sm:col-span-2">
+          <FormField
+            label="Interviewer"
+            htmlFor="iv-int"
+            required
+            error={e.interviewerId?.message}
+            className="sm:col-span-2"
+          >
             <NativeSelect {...form.register("interviewerId")}>
               <option value="">Select…</option>
               {interviewers.map((i) => (
@@ -168,7 +283,12 @@ export function ScheduleInterviewDialog({ candidateId, interviewers }: { candida
               ))}
             </NativeSelect>
           </FormField>
-          <FormField label="Location / meeting link" htmlFor="iv-loc" error={e.location?.message} className="sm:col-span-2">
+          <FormField
+            label="Location / meeting link"
+            htmlFor="iv-loc"
+            error={e.location?.message}
+            className="sm:col-span-2"
+          >
             <Input {...form.register("location")} />
           </FormField>
         </form>
@@ -184,8 +304,20 @@ export function ScheduleInterviewDialog({ candidateId, interviewers }: { candida
 
 export function FeedbackDialog({ interviewId, label }: { interviewId: string; label: string }) {
   const d = useDialog();
-  const form = useForm<z.input<typeof feedbackSchema>>({ resolver: zodResolver(feedbackSchema), defaultValues: { interviewId, status: "COMPLETED", rating: 3, recommendation: "HIRE", feedback: "" } });
-  const { execute, pending } = useAction(submitFeedbackAction, { form, onSuccess: () => d.setOpen(false) });
+  const form = useForm<z.input<typeof feedbackSchema>>({
+    resolver: zodResolver(feedbackSchema),
+    defaultValues: {
+      interviewId,
+      status: "COMPLETED",
+      rating: 3,
+      recommendation: "HIRE",
+      feedback: "",
+    },
+  });
+  const { execute, pending } = useAction(submitFeedbackAction, {
+    form,
+    onSuccess: () => d.setOpen(false),
+  });
   const e = form.formState.errors;
   return (
     <Dialog open={d.open} onOpenChange={d.setOpen}>
@@ -199,7 +331,12 @@ export function FeedbackDialog({ interviewId, label }: { interviewId: string; la
           <DialogTitle>Interview feedback</DialogTitle>
           <DialogDescription>{label}</DialogDescription>
         </DialogHeader>
-        <form id="fb-form" className="grid gap-4 sm:grid-cols-3" onSubmit={form.handleSubmit((v) => execute(v))} noValidate>
+        <form
+          id="fb-form"
+          className="grid gap-4 sm:grid-cols-3"
+          onSubmit={form.handleSubmit((v) => execute(v))}
+          noValidate
+        >
           <FormField label="Outcome" htmlFor="fb-status">
             <NativeSelect {...form.register("status")}>
               <option value="COMPLETED">Completed</option>
@@ -224,7 +361,13 @@ export function FeedbackDialog({ interviewId, label }: { interviewId: string; la
               ))}
             </NativeSelect>
           </FormField>
-          <FormField label="Feedback" htmlFor="fb-text" required error={e.feedback?.message} className="sm:col-span-3">
+          <FormField
+            label="Feedback"
+            htmlFor="fb-text"
+            required
+            error={e.feedback?.message}
+            className="sm:col-span-3"
+          >
             <Textarea rows={5} {...form.register("feedback")} />
           </FormField>
         </form>
@@ -240,7 +383,10 @@ export function FeedbackDialog({ interviewId, label }: { interviewId: string; la
 
 export function OfferDialog({ candidateId, expected }: { candidateId: string; expected?: number }) {
   const d = useDialog();
-  const form = useForm<z.input<typeof offerSchema>>({ resolver: zodResolver(offerSchema), defaultValues: { candidateId, offeredCtc: expected ?? 0, joiningDate: "" } });
+  const form = useForm<z.input<typeof offerSchema>>({
+    resolver: zodResolver(offerSchema),
+    defaultValues: { candidateId, offeredCtc: expected ?? 0, joiningDate: "" },
+  });
   const { execute, pending } = useAction(generateOfferAction, {
     form,
     onSuccess: (r) => {
@@ -260,7 +406,12 @@ export function OfferDialog({ candidateId, expected }: { candidateId: string; ex
         <DialogHeader>
           <DialogTitle>Generate offer letter</DialogTitle>
         </DialogHeader>
-        <form id="offer-form" className="grid gap-4 sm:grid-cols-2" onSubmit={form.handleSubmit((v) => execute(v))} noValidate>
+        <form
+          id="offer-form"
+          className="grid gap-4 sm:grid-cols-2"
+          onSubmit={form.handleSubmit((v) => execute(v))}
+          noValidate
+        >
           <FormField label="Annual CTC (₹)" htmlFor="of-ctc" required error={e.offeredCtc?.message}>
             <Input type="number" step="10000" {...form.register("offeredCtc")} />
           </FormField>
@@ -280,8 +431,14 @@ export function OfferDialog({ candidateId, expected }: { candidateId: string; ex
 
 export function HireDialog({ candidateId, name }: { candidateId: string; name: string }) {
   const d = useDialog();
-  const form = useForm<z.input<typeof hireSchema>>({ resolver: zodResolver(hireSchema), defaultValues: { candidateId, workEmail: "" } });
-  const { execute, pending } = useAction(hireCandidateAction, { form, onSuccess: () => d.setOpen(false) });
+  const form = useForm<z.input<typeof hireSchema>>({
+    resolver: zodResolver(hireSchema),
+    defaultValues: { candidateId, workEmail: "" },
+  });
+  const { execute, pending } = useAction(hireCandidateAction, {
+    form,
+    onSuccess: () => d.setOpen(false),
+  });
   return (
     <Dialog open={d.open} onOpenChange={d.setOpen}>
       <DialogTrigger asChild>
@@ -292,10 +449,23 @@ export function HireDialog({ candidateId, name }: { candidateId: string; name: s
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Hire {name}</DialogTitle>
-          <DialogDescription>Creates the employee record, onboarding checklist, leave balances and a portal account invite. The candidate&apos;s documents move to the employee profile.</DialogDescription>
+          <DialogDescription>
+            Creates the employee record, onboarding checklist, leave balances and a portal account
+            invite. The candidate&apos;s documents move to the employee profile.
+          </DialogDescription>
         </DialogHeader>
-        <form id="hire-form" className="grid gap-4" onSubmit={form.handleSubmit((v) => execute(v))} noValidate>
-          <FormField label="Work email" htmlFor="hire-email" required error={form.formState.errors.workEmail?.message}>
+        <form
+          id="hire-form"
+          className="grid gap-4"
+          onSubmit={form.handleSubmit((v) => execute(v))}
+          noValidate
+        >
+          <FormField
+            label="Work email"
+            htmlFor="hire-email"
+            required
+            error={form.formState.errors.workEmail?.message}
+          >
             <Input type="email" {...form.register("workEmail")} />
           </FormField>
         </form>

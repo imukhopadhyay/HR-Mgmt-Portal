@@ -40,10 +40,13 @@ export function Checklist({ title, items }: { title: string; items: ChecklistRow
               className="mt-0.5"
             />
             <label htmlFor={`cl-${i.id}`} className="grid flex-1 gap-0.5">
-              <span className={i.completedAt ? "text-muted-foreground line-through" : ""}>{i.title}</span>
+              <span className={i.completedAt ? "text-muted-foreground line-through" : ""}>
+                {i.title}
+              </span>
               <span className="text-muted-foreground text-xs">
                 {i.category}
-                {i.dueDate && ` · due ${new Date(i.dueDate).toLocaleDateString("en-IN", { timeZone: "UTC" })}`}
+                {i.dueDate &&
+                  ` · due ${new Date(i.dueDate).toLocaleDateString("en-IN", { timeZone: "UTC" })}`}
               </span>
             </label>
             <Badge variant="outline">{i.owner}</Badge>

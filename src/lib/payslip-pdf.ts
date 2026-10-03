@@ -4,7 +4,18 @@ import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFPage } from "pdf
 export interface PayslipData {
   company: string;
   period: string;
-  employee: { code: string; name: string; designation: string; department: string; doj: string; pan: string; uan: string; bank: string; account: string; location: string };
+  employee: {
+    code: string;
+    name: string;
+    designation: string;
+    department: string;
+    doj: string;
+    pan: string;
+    uan: string;
+    bank: string;
+    account: string;
+    location: string;
+  };
   days: { working: number; paid: number; lop: number };
   earnings: { name: string; amount: number }[];
   deductions: { name: string; amount: number }[];
@@ -14,14 +25,49 @@ export interface PayslipData {
   net: number;
 }
 
-const inr = (n: number) => `Rs. ${n.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+const inr = (n: number) =>
+  `Rs. ${n.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 const ascii = (s: string) => s.replace(/[^\x20-\x7E]/g, "?");
 
 function numberToWordsIndian(n: number): string {
-  const ones = ["", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen"];
-  const tens = ["", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety"];
-  const two = (x: number) => (x < 20 ? ones[x] : `${tens[Math.floor(x / 10)]}${x % 10 ? ` ${ones[x % 10]}` : ""}`);
-  const three = (x: number) => (x >= 100 ? `${ones[Math.floor(x / 100)]} Hundred${x % 100 ? ` ${two(x % 100)}` : ""}` : two(x));
+  const ones = [
+    "",
+    "One",
+    "Two",
+    "Three",
+    "Four",
+    "Five",
+    "Six",
+    "Seven",
+    "Eight",
+    "Nine",
+    "Ten",
+    "Eleven",
+    "Twelve",
+    "Thirteen",
+    "Fourteen",
+    "Fifteen",
+    "Sixteen",
+    "Seventeen",
+    "Eighteen",
+    "Nineteen",
+  ];
+  const tens = [
+    "",
+    "",
+    "Twenty",
+    "Thirty",
+    "Forty",
+    "Fifty",
+    "Sixty",
+    "Seventy",
+    "Eighty",
+    "Ninety",
+  ];
+  const two = (x: number) =>
+    x < 20 ? ones[x] : `${tens[Math.floor(x / 10)]}${x % 10 ? ` ${ones[x % 10]}` : ""}`;
+  const three = (x: number) =>
+    x >= 100 ? `${ones[Math.floor(x / 100)]} Hundred${x % 100 ? ` ${two(x % 100)}` : ""}` : two(x);
   n = Math.round(n);
   if (n === 0) return "Zero";
   const parts: string[] = [];
@@ -44,14 +90,28 @@ export async function renderPayslipPdf(d: PayslipData): Promise<Buffer> {
   const bold = await pdf.embedFont(StandardFonts.HelveticaBold);
   const M = 40;
   let y = 800;
-  const text = (p: PDFPage, s: string, x: number, yy: number, f: PDFFont = font, size = 9, color = rgb(0.1, 0.1, 0.1)) => p.drawText(ascii(s), { x, y: yy, size, font: f, color });
-  const right = (s: string, xRight: number, yy: number, f: PDFFont = font, size = 9) => text(page, s, xRight - f.widthOfTextAtSize(ascii(s), size), yy, f, size);
+  const text = (
+    p: PDFPage,
+    s: string,
+    x: number,
+    yy: number,
+    f: PDFFont = font,
+    size = 9,
+    color = rgb(0.1, 0.1, 0.1),
+  ) => p.drawText(ascii(s), { x, y: yy, size, font: f, color });
+  const right = (s: string, xRight: number, yy: number, f: PDFFont = font, size = 9) =>
+    text(page, s, xRight - f.widthOfTextAtSize(ascii(s), size), yy, f, size);
 
   text(page, d.company, M, y, bold, 16);
   y -= 18;
   text(page, `Payslip for ${d.period}`, M, y, font, 11, rgb(0.35, 0.35, 0.35));
   y -= 24;
-  page.drawLine({ start: { x: M, y }, end: { x: 595 - M, y }, thickness: 0.8, color: rgb(0.8, 0.8, 0.8) });
+  page.drawLine({
+    start: { x: M, y },
+    end: { x: 595 - M, y },
+    thickness: 0.8,
+    color: rgb(0.8, 0.8, 0.8),
+  });
   y -= 18;
   const info: [string, string][] = [
     ["Employee", `${d.employee.name} (${d.employee.code})`],
@@ -70,11 +130,24 @@ export async function renderPayslipPdf(d: PayslipData): Promise<Buffer> {
     text(page, v, M + col * 260 + 85, y - row * 16, bold, 9);
   });
   y -= Math.ceil(info.length / 2) * 16 + 10;
-  text(page, `Working days: ${d.days.working}   Paid days: ${d.days.paid}   LOP days: ${d.days.lop}`, M, y, font, 9);
+  text(
+    page,
+    `Working days: ${d.days.working}   Paid days: ${d.days.paid}   LOP days: ${d.days.lop}`,
+    M,
+    y,
+    font,
+    9,
+  );
   y -= 22;
 
   const colW = (595 - 2 * M) / 2;
-  page.drawRectangle({ x: M, y: y - 4, width: 595 - 2 * M, height: 18, color: rgb(0.93, 0.94, 0.96) });
+  page.drawRectangle({
+    x: M,
+    y: y - 4,
+    width: 595 - 2 * M,
+    height: 18,
+    color: rgb(0.93, 0.94, 0.96),
+  });
   text(page, "Earnings", M + 6, y, bold);
   right("Amount", M + colW - 6, y, bold);
   text(page, "Deductions", M + colW + 6, y, bold);
@@ -94,7 +167,12 @@ export async function renderPayslipPdf(d: PayslipData): Promise<Buffer> {
     }
     y -= 15;
   }
-  page.drawLine({ start: { x: M, y: y + 8 }, end: { x: 595 - M, y: y + 8 }, thickness: 0.5, color: rgb(0.8, 0.8, 0.8) });
+  page.drawLine({
+    start: { x: M, y: y + 8 },
+    end: { x: 595 - M, y: y + 8 },
+    thickness: 0.5,
+    color: rgb(0.8, 0.8, 0.8),
+  });
   text(page, "Gross earnings", M + 6, y - 4, bold);
   right(inr(d.gross), M + colW - 6, y - 4, bold);
   text(page, "Total deductions", M + colW + 6, y - 4, bold);
@@ -115,7 +193,23 @@ export async function renderPayslipPdf(d: PayslipData): Promise<Buffer> {
       y -= 14;
     }
   }
-  text(page, "This is a system-generated payslip and does not require a signature. Confidential.", M, 40, font, 7, rgb(0.5, 0.5, 0.5));
-  text(page, "Statutory computations are based on configured rules; contact HR for queries.", M, 30, font, 7, rgb(0.5, 0.5, 0.5));
+  text(
+    page,
+    "This is a system-generated payslip and does not require a signature. Confidential.",
+    M,
+    40,
+    font,
+    7,
+    rgb(0.5, 0.5, 0.5),
+  );
+  text(
+    page,
+    "Statutory computations are based on configured rules; contact HR for queries.",
+    M,
+    30,
+    font,
+    7,
+    rgb(0.5, 0.5, 0.5),
+  );
   return Buffer.from(await pdf.save());
 }

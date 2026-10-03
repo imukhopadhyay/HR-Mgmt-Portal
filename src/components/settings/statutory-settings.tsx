@@ -9,11 +9,19 @@ export async function StatutorySettings({ canEdit }: { canEdit: boolean }) {
   const cfg = await getStatutoryConfig();
   return (
     <div className="grid gap-6">
-      <div role="note" className="border-warning/50 bg-warning/10 flex gap-3 rounded-lg border p-4 text-sm">
+      <div
+        role="note"
+        className="border-warning/50 bg-warning/10 flex gap-3 rounded-lg border p-4 text-sm"
+      >
         <AlertTriangle className="mt-0.5 size-5 shrink-0 text-amber-600" aria-hidden />
         <p>
-          These statutory rules (EPF, ESI, Professional Tax, TDS) are configurable defaults. Rates, ceilings and slabs change with legislation and vary by state.
-          <strong> HR and Finance must validate them — ideally with a qualified tax advisor — before processing a production payroll.</strong>
+          These statutory rules (EPF, ESI, Professional Tax, TDS) are configurable defaults. Rates,
+          ceilings and slabs change with legislation and vary by state.
+          <strong>
+            {" "}
+            HR and Finance must validate them — ideally with a qualified tax advisor — before
+            processing a production payroll.
+          </strong>
         </p>
       </div>
       <div className="grid gap-4 md:grid-cols-2">
@@ -23,7 +31,11 @@ export async function StatutorySettings({ canEdit }: { canEdit: boolean }) {
             <CardDescription>{cfg.pf.enabled ? "Enabled" : "Disabled"}</CardDescription>
           </CardHeader>
           <CardContent className="text-sm">
-            Employee {cfg.pf.employeeRate}% · Employer {cfg.pf.employerRate}% of basic{cfg.pf.applyCeiling ? `, capped at a wage of ₹${cfg.pf.wageCeiling.toLocaleString("en-IN")}` : ""}.
+            Employee {cfg.pf.employeeRate}% · Employer {cfg.pf.employerRate}% of basic
+            {cfg.pf.applyCeiling
+              ? `, capped at a wage of ₹${cfg.pf.wageCeiling.toLocaleString("en-IN")}`
+              : ""}
+            .
           </CardContent>
         </Card>
         <Card>
@@ -32,7 +44,8 @@ export async function StatutorySettings({ canEdit }: { canEdit: boolean }) {
             <CardDescription>{cfg.esi.enabled ? "Enabled" : "Disabled"}</CardDescription>
           </CardHeader>
           <CardContent className="text-sm">
-            Employee {cfg.esi.employeeRate}% · Employer {cfg.esi.employerRate}% of gross, when monthly gross ≤ ₹{cfg.esi.grossThreshold.toLocaleString("en-IN")}.
+            Employee {cfg.esi.employeeRate}% · Employer {cfg.esi.employerRate}% of gross, when
+            monthly gross ≤ ₹{cfg.esi.grossThreshold.toLocaleString("en-IN")}.
           </CardContent>
         </Card>
         <Card>
@@ -41,7 +54,10 @@ export async function StatutorySettings({ canEdit }: { canEdit: boolean }) {
             <CardDescription>Monthly slabs by state (work location state)</CardDescription>
           </CardHeader>
           <CardContent className="grid gap-2 text-sm">
-            {Object.entries({ Default: cfg.professionalTax.defaultSlabs, ...cfg.professionalTax.stateSlabs }).map(([state, slabs]) => (
+            {Object.entries({
+              Default: cfg.professionalTax.defaultSlabs,
+              ...cfg.professionalTax.stateSlabs,
+            }).map(([state, slabs]) => (
               <div key={state}>
                 <span className="font-medium">{state}: </span>
                 {slabs.map((s) => `up to ${money(s.upTo)} → ₹${s.amount}`).join("; ")}
@@ -55,8 +71,13 @@ export async function StatutorySettings({ canEdit }: { canEdit: boolean }) {
             <CardDescription>{cfg.tds.regime} regime projection</CardDescription>
           </CardHeader>
           <CardContent className="grid gap-1 text-sm">
-            <div>Standard deduction ₹{cfg.tds.standardDeduction.toLocaleString("en-IN")} · rebate up to ₹{cfg.tds.rebateLimit.toLocaleString("en-IN")} · cess {cfg.tds.cessRate}%</div>
-            <div className="text-muted-foreground">{cfg.tds.slabs.map((s) => `${s.rate}% up to ${money(s.upTo)}`).join(" · ")}</div>
+            <div>
+              Standard deduction ₹{cfg.tds.standardDeduction.toLocaleString("en-IN")} · rebate up to
+              ₹{cfg.tds.rebateLimit.toLocaleString("en-IN")} · cess {cfg.tds.cessRate}%
+            </div>
+            <div className="text-muted-foreground">
+              {cfg.tds.slabs.map((s) => `${s.rate}% up to ${money(s.upTo)}`).join(" · ")}
+            </div>
           </CardContent>
         </Card>
       </div>

@@ -4,7 +4,10 @@ import { dateKey, optText } from "./common";
 export const structureSchema = z.object({
   employeeId: z.string().min(1, "Select an employee"),
   effectiveFrom: dateKey,
-  annualCtc: z.coerce.number({ invalid_type_error: "Enter the annual CTC" }).min(1, "CTC must be positive").max(1e9),
+  annualCtc: z.coerce
+    .number({ invalid_type_error: "Enter the annual CTC" })
+    .min(1, "CTC must be positive")
+    .max(1e9),
   pfOptedOut: z.boolean().default(false),
   notes: optText(500),
   lines: z

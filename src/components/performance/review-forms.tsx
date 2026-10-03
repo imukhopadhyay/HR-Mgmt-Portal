@@ -31,7 +31,10 @@ function RatingSelect(props: React.ComponentProps<"select">) {
 }
 
 export function SelfReviewForm({ id }: { id: string }) {
-  const form = useForm<z.input<typeof selfReviewSchema>>({ resolver: zodResolver(selfReviewSchema), defaultValues: { id, selfRating: 3, selfComments: "" } });
+  const form = useForm<z.input<typeof selfReviewSchema>>({
+    resolver: zodResolver(selfReviewSchema),
+    defaultValues: { id, selfRating: 3, selfComments: "" },
+  });
   const { execute, pending } = useAction(submitSelfReviewAction, { form });
   const e = form.formState.errors;
   return (
@@ -39,7 +42,12 @@ export function SelfReviewForm({ id }: { id: string }) {
       <FormField label="Self rating" htmlFor="sr-rating" error={e.selfRating?.message}>
         <RatingSelect {...form.register("selfRating")} />
       </FormField>
-      <FormField label="Achievements, challenges and reflections" htmlFor="sr-comments" required error={e.selfComments?.message}>
+      <FormField
+        label="Achievements, challenges and reflections"
+        htmlFor="sr-comments"
+        required
+        error={e.selfComments?.message}
+      >
         <Textarea rows={8} {...form.register("selfComments")} />
       </FormField>
       <Button type="submit" disabled={pending} className="justify-self-start">
@@ -50,18 +58,43 @@ export function SelfReviewForm({ id }: { id: string }) {
 }
 
 export function ManagerReviewForm({ id }: { id: string }) {
-  const form = useForm<z.input<typeof managerReviewSchema>>({ resolver: zodResolver(managerReviewSchema), defaultValues: { id, managerRating: 3, managerComments: "", strengths: "", improvements: "", finalRating: 3 } });
+  const form = useForm<z.input<typeof managerReviewSchema>>({
+    resolver: zodResolver(managerReviewSchema),
+    defaultValues: {
+      id,
+      managerRating: 3,
+      managerComments: "",
+      strengths: "",
+      improvements: "",
+      finalRating: 3,
+    },
+  });
   const { execute, pending } = useAction(submitManagerReviewAction, { form });
   const e = form.formState.errors;
   return (
-    <form className="grid gap-4 sm:grid-cols-2" onSubmit={form.handleSubmit((v) => execute(v))} noValidate>
+    <form
+      className="grid gap-4 sm:grid-cols-2"
+      onSubmit={form.handleSubmit((v) => execute(v))}
+      noValidate
+    >
       <FormField label="Manager rating" htmlFor="mr-rating" error={e.managerRating?.message}>
         <RatingSelect {...form.register("managerRating")} />
       </FormField>
-      <FormField label="Final rating" htmlFor="mr-final" error={e.finalRating?.message} hint="After calibration">
+      <FormField
+        label="Final rating"
+        htmlFor="mr-final"
+        error={e.finalRating?.message}
+        hint="After calibration"
+      >
         <RatingSelect {...form.register("finalRating")} />
       </FormField>
-      <FormField label="Overall feedback" htmlFor="mr-comments" required error={e.managerComments?.message} className="sm:col-span-2">
+      <FormField
+        label="Overall feedback"
+        htmlFor="mr-comments"
+        required
+        error={e.managerComments?.message}
+        className="sm:col-span-2"
+      >
         <Textarea rows={6} {...form.register("managerComments")} />
       </FormField>
       <FormField label="Strengths" htmlFor="mr-strengths" error={e.strengths?.message}>

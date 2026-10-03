@@ -14,7 +14,10 @@ export const resetPasswordSchema = z
     password,
     confirmPassword: z.string(),
   })
-  .refine((v) => v.password === v.confirmPassword, { path: ["confirmPassword"], message: "Passwords do not match" });
+  .refine((v) => v.password === v.confirmPassword, {
+    path: ["confirmPassword"],
+    message: "Passwords do not match",
+  });
 
 export const changePasswordSchema = z
   .object({
@@ -22,5 +25,11 @@ export const changePasswordSchema = z
     password,
     confirmPassword: z.string(),
   })
-  .refine((v) => v.password === v.confirmPassword, { path: ["confirmPassword"], message: "Passwords do not match" })
-  .refine((v) => v.password !== v.currentPassword, { path: ["password"], message: "Choose a different password" });
+  .refine((v) => v.password === v.confirmPassword, {
+    path: ["confirmPassword"],
+    message: "Passwords do not match",
+  })
+  .refine((v) => v.password !== v.currentPassword, {
+    path: ["password"],
+    message: "Choose a different password",
+  });

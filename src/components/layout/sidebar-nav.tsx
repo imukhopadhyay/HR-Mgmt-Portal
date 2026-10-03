@@ -6,7 +6,13 @@ import { NAV } from "./nav-config";
 import { cn } from "@/lib/utils";
 
 /** Receives the list of permitted hrefs from the server (icons can't cross the RSC boundary). */
-export function SidebarNav({ allowed, onNavigate }: { allowed: string[]; onNavigate?: () => void }) {
+export function SidebarNav({
+  allowed,
+  onNavigate,
+}: {
+  allowed: string[];
+  onNavigate?: () => void;
+}) {
   const pathname = usePathname();
   const allowedSet = new Set(allowed);
   const allHrefs = NAV.flatMap((g) => g.items.map((i) => i.href));
@@ -21,7 +27,9 @@ export function SidebarNav({ allowed, onNavigate }: { allowed: string[]; onNavig
         if (!items.length) return null;
         return (
           <div key={group.label}>
-            <p className="text-muted-foreground mb-1.5 px-2 text-[11px] font-semibold tracking-wider uppercase">{group.label}</p>
+            <p className="text-muted-foreground mb-1.5 px-2 text-[11px] font-semibold tracking-wider uppercase">
+              {group.label}
+            </p>
             <ul className="grid gap-0.5">
               {items.map((item) => {
                 const active = item.href === activeHref;
@@ -33,7 +41,9 @@ export function SidebarNav({ allowed, onNavigate }: { allowed: string[]; onNavig
                       aria-current={active ? "page" : undefined}
                       className={cn(
                         "focus-visible:ring-ring/50 flex items-center gap-2.5 rounded-md px-2 py-1.5 text-sm outline-none focus-visible:ring-[3px]",
-                        active ? "bg-primary/10 text-primary font-medium" : "text-sidebar-foreground hover:bg-sidebar-accent",
+                        active
+                          ? "bg-primary/10 text-primary font-medium"
+                          : "text-sidebar-foreground hover:bg-sidebar-accent",
                       )}
                     >
                       <item.icon className="size-4 shrink-0" aria-hidden />

@@ -7,7 +7,14 @@ import { cancelLeaveAction } from "@/server/actions/leave";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { PageHeader } from "@/components/shared/page-header";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { EmptyState } from "@/components/shared/empty-state";
@@ -17,13 +24,23 @@ import { FilterBar } from "@/components/shared/filter-bar";
 
 export const metadata = { title: "Leave" };
 
-export default async function LeavePage({ searchParams }: { searchParams: Promise<{ year?: string }> }) {
+export default async function LeavePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ year?: string }>;
+}) {
   const actor = await requireUser();
-  if (!actor.employeeId) return <EmptyState title="No employee profile" description="Leave is available to employees only." />;
+  if (!actor.employeeId)
+    return (
+      <EmptyState title="No employee profile" description="Leave is available to employees only." />
+    );
   const today = todayKey();
   const yearParam = Number((await searchParams).year);
   const year = yearParam >= 2000 && yearParam <= 2100 ? yearParam : Number(today.slice(0, 4));
-  const [balances, requests] = await Promise.all([balancesFor(actor.employeeId, year), myRequests(actor.employeeId, year)]);
+  const [balances, requests] = await Promise.all([
+    balancesFor(actor.employeeId, year),
+    myRequests(actor.employeeId, year),
+  ]);
   const typeOptions = balances.map((b) => ({
     id: b.leaveType.id,
     name: b.leaveType.name,
@@ -36,8 +53,23 @@ export default async function LeavePage({ searchParams }: { searchParams: Promis
   }));
   return (
     <>
-      <PageHeader title="My leave" description={`Balances and requests for ${year}`} actions={<ApplyLeaveDialog types={typeOptions} />} />
-      <FilterBar search={false} filters={[{ name: "year", label: "Year", options: [-1, 0, 1].map((d) => String(Number(today.slice(0, 4)) + d)).map((y) => ({ value: y, label: y })) }]} />
+      <PageHeader
+        title="My leave"
+        description={`Balances and requests for ${year}`}
+        actions={<ApplyLeaveDialog types={typeOptions} />}
+      />
+      <FilterBar
+        search={false}
+        filters={[
+          {
+            name: "year",
+            label: "Year",
+            options: [-1, 0, 1]
+              .map((d) => String(Number(today.slice(0, 4)) + d))
+              .map((y) => ({ value: y, label: y })),
+          },
+        ]}
+      />
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
         {balances.map((b) => {
           const total = b.entitled + b.carriedForward + b.adjusted;
@@ -45,7 +77,11 @@ export default async function LeavePage({ searchParams }: { searchParams: Promis
             <Card key={b.id} className="gap-2 px-5 py-4">
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium">{b.leaveType.name}</span>
-                <span className="size-2.5 rounded-full" style={{ background: b.leaveType.color }} aria-hidden />
+                <span
+                  className="size-2.5 rounded-full"
+                  style={{ background: b.leaveType.color }}
+                  aria-hidden
+                />
               </div>
               {b.leaveType.allowNegativeBalance && total === 0 ? (
                 <div className="text-muted-foreground text-sm">Used: {b.used} day(s)</div>
@@ -55,7 +91,10 @@ export default async function LeavePage({ searchParams }: { searchParams: Promis
                     {b.available}
                     <span className="text-muted-foreground text-sm font-normal"> / {total}</span>
                   </div>
-                  <Progress value={total ? ((b.used + b.pending) / total) * 100 : 0} aria-label={`${b.leaveType.name} usage`} />
+                  <Progress
+                    value={total ? ((b.used + b.pending) / total) * 100 : 0}
+                    aria-label={`${b.leaveType.name} usage`}
+                  />
                   <div className="text-muted-foreground text-xs">
                     Used {b.used} · Pending {b.pending}
                     {b.carriedForward ? ` · Carried ${b.carriedForward}` : ""}
@@ -89,20 +128,31 @@ export default async function LeavePage({ searchParams }: { searchParams: Promis
               <TableBody>
                 {requests.map((r) => {
                   const startKey = dbDateToKey(r.startDate);
-                  const editable = r.status === "MODIFICATION_REQUESTED" || (r.status === "PENDING" && r.approvals.length === 0);
-                  const cancellable = r.status === "PENDING" || r.status === "MODIFICATION_REQUESTED" || (r.status === "APPROVED" && startKey > today);
+                  const editable =
+                    r.status === "MODIFICATION_REQUESTED" ||
+                    (r.status === "PENDING" && r.approvals.length === 0);
+                  const cancellable =
+                    r.status === "PENDING" ||
+                    r.status === "MODIFICATION_REQUESTED" ||
+                    (r.status === "APPROVED" && startKey > today);
                   return (
                     <TableRow key={r.id}>
                       <TableCell>
                         <span className="font-medium">{r.leaveType.name}</span>
-                        <div className="text-muted-foreground max-w-56 truncate text-xs" title={r.reason}>
+                        <div
+                          className="text-muted-foreground max-w-56 truncate text-xs"
+                          title={r.reason}
+                        >
                           {r.reason}
                         </div>
                       </TableCell>
                       <TableCell className="text-sm">
                         {formatDateKey(startKey)}
-                        {r.endDate.getTime() !== r.startDate.getTime() && ` – ${formatDateKey(dbDateToKey(r.endDate))}`}
-                        {r.halfDay && <div className="text-muted-foreground text-xs">{humanize(r.halfDay)}</div>}
+                        {r.endDate.getTime() !== r.startDate.getTime() &&
+                          ` – ${formatDateKey(dbDateToKey(r.endDate))}`}
+                        {r.halfDay && (
+                          <div className="text-muted-foreground text-xs">{humanize(r.halfDay)}</div>
+                        )}
                       </TableCell>
                       <TableCell className="text-right tabular-nums">{toNumber(r.days)}</TableCell>
                       <TableCell>
@@ -120,8 +170,11 @@ export default async function LeavePage({ searchParams }: { searchParams: Promis
                           <ul className="text-xs">
                             {r.approvals.map((a) => (
                               <li key={a.id}>
-                                L{a.level} {humanize(a.action)} by {a.approver.firstName} {a.approver.lastName}
-                                {a.comment && <span className="text-muted-foreground"> — “{a.comment}”</span>}
+                                L{a.level} {humanize(a.action)} by {a.approver.firstName}{" "}
+                                {a.approver.lastName}
+                                {a.comment && (
+                                  <span className="text-muted-foreground"> — “{a.comment}”</span>
+                                )}
                               </li>
                             ))}
                           </ul>
@@ -132,17 +185,34 @@ export default async function LeavePage({ searchParams }: { searchParams: Promis
                           {editable && (
                             <ApplyLeaveDialog
                               types={typeOptions}
-                              existing={{ id: r.id, leaveTypeId: r.leaveTypeId, startDate: startKey, endDate: dbDateToKey(r.endDate), halfDay: r.halfDay ?? "", reason: r.reason }}
+                              existing={{
+                                id: r.id,
+                                leaveTypeId: r.leaveTypeId,
+                                startDate: startKey,
+                                endDate: dbDateToKey(r.endDate),
+                                halfDay: r.halfDay ?? "",
+                                reason: r.reason,
+                              }}
                             />
                           )}
                           {cancellable && (
                             <ConfirmAction
                               trigger={
-                                <Button variant="ghost" size="icon" aria-label={r.status === "APPROVED" ? "Cancel leave" : "Withdraw request"}>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  aria-label={
+                                    r.status === "APPROVED" ? "Cancel leave" : "Withdraw request"
+                                  }
+                                >
                                   <Ban />
                                 </Button>
                               }
-                              title={r.status === "APPROVED" ? "Cancel approved leave?" : "Withdraw this request?"}
+                              title={
+                                r.status === "APPROVED"
+                                  ? "Cancel approved leave?"
+                                  : "Withdraw this request?"
+                              }
                               description="The days will be returned to your balance."
                               destructive
                               confirmLabel={r.status === "APPROVED" ? "Cancel leave" : "Withdraw"}

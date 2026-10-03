@@ -36,7 +36,8 @@ export interface SessionUser {
 
 export function buildSessionUser(user: UserWithAccess): SessionUser {
   const permissions = new Set<string>();
-  for (const ur of user.roles) for (const rp of ur.role.permissions) permissions.add(rp.permission.key);
+  for (const ur of user.roles)
+    for (const rp of ur.role.permissions) permissions.add(rp.permission.key);
   const e = user.employee;
   return {
     id: user.id,

@@ -15,16 +15,29 @@ function Node({ node, depth }: { node: OrgNode; depth: number }) {
   const [open, setOpen] = useState(depth < 2);
   const total = count(node);
   return (
-    <li role="treeitem" aria-expanded={node.children.length ? open : undefined} aria-selected={false}>
+    <li
+      role="treeitem"
+      aria-expanded={node.children.length ? open : undefined}
+      aria-selected={false}
+    >
       <div className="flex items-center gap-1 py-1">
         {node.children.length > 0 ? (
-          <Button variant="ghost" size="icon" className="size-7" onClick={() => setOpen(!open)} aria-label={open ? `Collapse ${node.name}'s team` : `Expand ${node.name}'s team`}>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="size-7"
+            onClick={() => setOpen(!open)}
+            aria-label={open ? `Collapse ${node.name}'s team` : `Expand ${node.name}'s team`}
+          >
             {open ? <ChevronDown /> : <ChevronRight />}
           </Button>
         ) : (
           <span className="w-7" />
         )}
-        <Link href={`/employees/${node.id}`} className="hover:bg-muted flex items-center gap-3 rounded-md border px-3 py-2">
+        <Link
+          href={`/employees/${node.id}`}
+          className="hover:bg-muted flex items-center gap-3 rounded-md border px-3 py-2"
+        >
           <EmployeeAvatar id={node.id} name={node.name} />
           <div>
             <div className="text-sm font-medium">{node.name}</div>

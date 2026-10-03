@@ -13,7 +13,8 @@ export function assertPermission(actor: SessionUser, ...perms: Permission[]) {
 }
 
 export function assertEmployee(actor: SessionUser): string {
-  if (!actor.employeeId) throw new ForbiddenError("Your account is not linked to an employee profile.");
+  if (!actor.employeeId)
+    throw new ForbiddenError("Your account is not linked to an employee profile.");
   return actor.employeeId;
 }
 

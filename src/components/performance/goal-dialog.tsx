@@ -6,7 +6,14 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import type { z } from "zod";
 import { Pencil, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { FormField, NativeSelect } from "@/components/shared/form-field";
@@ -16,13 +23,39 @@ import { saveGoalAction } from "@/server/actions/performance";
 
 type Values = z.input<typeof goalSchema>;
 
-export function GoalDialog({ employeeId, cycles, initial, type = "PERFORMANCE", label }: { employeeId: string; cycles: { id: string; name: string }[]; initial?: Values; type?: "PERFORMANCE" | "DEVELOPMENT"; label?: string }) {
+export function GoalDialog({
+  employeeId,
+  cycles,
+  initial,
+  type = "PERFORMANCE",
+  label,
+}: {
+  employeeId: string;
+  cycles: { id: string; name: string }[];
+  initial?: Values;
+  type?: "PERFORMANCE" | "DEVELOPMENT";
+  label?: string;
+}) {
   const [open, setOpen] = useState(false);
   const form = useForm<Values>({
     resolver: zodResolver(goalSchema),
-    defaultValues: initial ?? { employeeId, type, title: "", cycleId: type === "PERFORMANCE" ? (cycles[0]?.id ?? "") : "", weight: type === "PERFORMANCE" ? 20 : 0, progress: 0, status: "NOT_STARTED" },
+    defaultValues: initial ?? {
+      employeeId,
+      type,
+      title: "",
+      cycleId: type === "PERFORMANCE" ? (cycles[0]?.id ?? "") : "",
+      weight: type === "PERFORMANCE" ? 20 : 0,
+      progress: 0,
+      status: "NOT_STARTED",
+    },
   });
-  const { execute, pending } = useAction(saveGoalAction, { form, onSuccess: () => { setOpen(false); if (!initial) form.reset(); } });
+  const { execute, pending } = useAction(saveGoalAction, {
+    form,
+    onSuccess: () => {
+      setOpen(false);
+      if (!initial) form.reset();
+    },
+  });
   const e = form.formState.errors;
   const goalType = form.watch("type");
   return (
@@ -40,13 +73,35 @@ export function GoalDialog({ employeeId, cycles, initial, type = "PERFORMANCE", 
       </DialogTrigger>
       <DialogContent className="sm:max-w-xl">
         <DialogHeader>
-          <DialogTitle>{initial ? "Update goal" : type === "DEVELOPMENT" ? "Development plan item" : "New goal"}</DialogTitle>
+          <DialogTitle>
+            {initial
+              ? "Update goal"
+              : type === "DEVELOPMENT"
+                ? "Development plan item"
+                : "New goal"}
+          </DialogTitle>
         </DialogHeader>
-        <form id="goal-form" className="grid gap-4 sm:grid-cols-3" onSubmit={form.handleSubmit((v) => execute(v))} noValidate>
-          <FormField label="Title" htmlFor="g-title" required error={e.title?.message} className="sm:col-span-3">
+        <form
+          id="goal-form"
+          className="grid gap-4 sm:grid-cols-3"
+          onSubmit={form.handleSubmit((v) => execute(v))}
+          noValidate
+        >
+          <FormField
+            label="Title"
+            htmlFor="g-title"
+            required
+            error={e.title?.message}
+            className="sm:col-span-3"
+          >
             <Input {...form.register("title")} />
           </FormField>
-          <FormField label="Description" htmlFor="g-desc" error={e.description?.message} className="sm:col-span-3">
+          <FormField
+            label="Description"
+            htmlFor="g-desc"
+            error={e.description?.message}
+            className="sm:col-span-3"
+          >
             <Textarea rows={2} {...form.register("description")} />
           </FormField>
           {goalType === "PERFORMANCE" && (

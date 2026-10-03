@@ -6,7 +6,14 @@ import { formatINR } from "@/lib/utils";
 import { listRuns } from "@/server/services/payroll.service";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { PageHeader } from "@/components/shared/page-header";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { EmptyState } from "@/components/shared/empty-state";
@@ -32,7 +39,11 @@ export default async function PayrollPage() {
       {canManage && <NewRunForm defaultMonth={todayKey().slice(0, 7)} />}
       <Card className="py-0">
         {runs.length === 0 ? (
-          <EmptyState icon={IndianRupee} title="No payroll runs yet" description="Create a run for a month to compute salaries." />
+          <EmptyState
+            icon={IndianRupee}
+            title="No payroll runs yet"
+            description="Create a run for a month to compute salaries."
+          />
         ) : (
           <Table>
             <TableHeader>
@@ -50,16 +61,26 @@ export default async function PayrollPage() {
                 <TableRow key={r.id}>
                   <TableCell>
                     <Link href={`/payroll/${r.id}`} className="font-medium hover:underline">
-                      {new Date(Date.UTC(r.year, r.month - 1, 1)).toLocaleDateString("en-IN", { month: "long", year: "numeric", timeZone: "UTC" })}
+                      {new Date(Date.UTC(r.year, r.month - 1, 1)).toLocaleDateString("en-IN", {
+                        month: "long",
+                        year: "numeric",
+                        timeZone: "UTC",
+                      })}
                     </Link>
                   </TableCell>
                   <TableCell>
                     <StatusBadge status={r.status} />
                   </TableCell>
                   <TableCell className="text-right tabular-nums">{r.employeeCount}</TableCell>
-                  <TableCell className="text-right tabular-nums">{formatINR(r.totalGross)}</TableCell>
-                  <TableCell className="text-right tabular-nums">{formatINR(r.totalDeductions)}</TableCell>
-                  <TableCell className="text-right font-medium tabular-nums">{formatINR(r.totalNet)}</TableCell>
+                  <TableCell className="text-right tabular-nums">
+                    {formatINR(r.totalGross)}
+                  </TableCell>
+                  <TableCell className="text-right tabular-nums">
+                    {formatINR(r.totalDeductions)}
+                  </TableCell>
+                  <TableCell className="text-right font-medium tabular-nums">
+                    {formatINR(r.totalNet)}
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>

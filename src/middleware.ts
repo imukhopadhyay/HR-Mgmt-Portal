@@ -31,7 +31,8 @@ export function middleware(req: NextRequest) {
   requestHeaders.set("x-pathname", pathname);
 
   if (!isPublic(pathname) && !req.cookies.get(sessionCookie())) {
-    if (pathname.startsWith("/api/")) return NextResponse.json({ error: "Unauthenticated" }, { status: 401 });
+    if (pathname.startsWith("/api/"))
+      return NextResponse.json({ error: "Unauthenticated" }, { status: 401 });
     const url = req.nextUrl.clone();
     url.pathname = "/login";
     url.search = pathname === "/" ? "" : `?next=${encodeURIComponent(pathname + search)}`;

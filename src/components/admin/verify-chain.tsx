@@ -11,7 +11,12 @@ export function VerifyChain() {
   const { execute, pending } = useAction(verifyAuditChainAction, {
     refresh: false,
     successMessage: "Verification finished",
-    onSuccess: (r) => setResult(r.ok ? `Integrity verified: ${r.checked} entries, hash chain intact.` : `TAMPERING DETECTED at sequence ${r.brokenAtSeq} (after ${r.checked} valid entries).`),
+    onSuccess: (r) =>
+      setResult(
+        r.ok
+          ? `Integrity verified: ${r.checked} entries, hash chain intact.`
+          : `TAMPERING DETECTED at sequence ${r.brokenAtSeq} (after ${r.checked} valid entries).`,
+      ),
   });
   return (
     <div className="flex flex-wrap items-center gap-3">
@@ -19,7 +24,14 @@ export function VerifyChain() {
         <ShieldCheck /> {pending ? "Verifying…" : "Verify integrity"}
       </Button>
       {result && (
-        <span role="status" className={result.startsWith("TAMPERING") ? "text-destructive text-sm font-medium" : "text-success text-sm"}>
+        <span
+          role="status"
+          className={
+            result.startsWith("TAMPERING")
+              ? "text-destructive text-sm font-medium"
+              : "text-success text-sm"
+          }
+        >
           {result}
         </span>
       )}

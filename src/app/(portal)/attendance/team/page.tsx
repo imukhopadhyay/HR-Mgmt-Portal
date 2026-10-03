@@ -8,7 +8,14 @@ import { monthlyReport, teamDay } from "@/server/services/attendance.service";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { PageHeader } from "@/components/shared/page-header";
 import { FilterBar } from "@/components/shared/filter-bar";
 import { StatCard } from "@/components/shared/stat-card";
@@ -20,13 +27,25 @@ import { AdminEditDialog } from "@/components/attendance/admin-edit-dialog";
 
 export const metadata = { title: "Team attendance" };
 
-export default async function TeamAttendancePage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
-  const actor = await requirePagePermission("attendance:read:team", "attendance:read:department", "attendance:read:all");
+export default async function TeamAttendancePage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | undefined>>;
+}) {
+  const actor = await requirePagePermission(
+    "attendance:read:team",
+    "attendance:read:department",
+    "attendance:read:all",
+  );
   const sp = await searchParams;
   const view = sp.view === "monthly" ? "monthly" : "daily";
   const today = todayKey();
   const date = /^\d{4}-\d{2}-\d{2}$/.test(sp.date ?? "") ? sp.date! : today;
-  const departments = await db.department.findMany({ where: { deletedAt: null }, select: { id: true, name: true }, orderBy: { name: "asc" } });
+  const departments = await db.department.findMany({
+    where: { deletedAt: null },
+    select: { id: true, name: true },
+    orderBy: { name: "asc" },
+  });
   const canEdit = actor.permissions.has("attendance:manage");
   const canExport = actor.permissions.has("report:export");
 
@@ -46,7 +65,12 @@ export default async function TeamAttendancePage({ searchParams }: { searchParam
   if (view === "monthly") {
     const { year, month } = parseMonth(sp.month, today);
     const rows = await monthlyReport(actor, year, month, sp.departmentId);
-    const q = new URLSearchParams(Object.entries({ month: `${year}-${String(month).padStart(2, "0")}`, departmentId: sp.departmentId }).filter(([, v]) => !!v) as [string, string][]).toString();
+    const q = new URLSearchParams(
+      Object.entries({
+        month: `${year}-${String(month).padStart(2, "0")}`,
+        departmentId: sp.departmentId,
+      }).filter(([, v]) => !!v) as [string, string][],
+    ).toString();
     return (
       <>
         <PageHeader
@@ -68,9 +92,23 @@ export default async function TeamAttendancePage({ searchParams }: { searchParam
         />
         <div className="flex flex-wrap items-center justify-between gap-3">
           {tabs}
-          <MonthPicker year={year} month={month} basePath="/attendance/team" params={{ view: "monthly", departmentId: sp.departmentId }} />
+          <MonthPicker
+            year={year}
+            month={month}
+            basePath="/attendance/team"
+            params={{ view: "monthly", departmentId: sp.departmentId }}
+          />
         </div>
-        <FilterBar search={false} filters={[{ name: "departmentId", label: "Department", options: departments.map((d) => ({ value: d.id, label: d.name })) }]} />
+        <FilterBar
+          search={false}
+          filters={[
+            {
+              name: "departmentId",
+              label: "Department",
+              options: departments.map((d) => ({ value: d.id, label: d.name })),
+            },
+          ]}
+        />
         <Card className="py-0">
           {rows.length === 0 ? (
             <EmptyState title="No employees in scope" />
@@ -93,7 +131,10 @@ export default async function TeamAttendancePage({ searchParams }: { searchParam
                 {rows.map((r) => (
                   <TableRow key={r.employeeId}>
                     <TableCell>
-                      <Link href={`/employees/${r.employeeId}`} className="font-medium hover:underline">
+                      <Link
+                        href={`/employees/${r.employeeId}`}
+                        className="font-medium hover:underline"
+                      >
                         {r.name}
                       </Link>
                       <div className="text-muted-foreground text-xs">
@@ -122,13 +163,20 @@ export default async function TeamAttendancePage({ searchParams }: { searchParam
   const count = (s: string) => rows.filter((r) => r.status === s).length;
   return (
     <>
-      <PageHeader title="Team attendance" description="Daily roll-call for employees in your scope." />
+      <PageHeader
+        title="Team attendance"
+        description="Daily roll-call for employees in your scope."
+      />
       <div className="flex flex-wrap items-center justify-between gap-3">{tabs}</div>
       <FilterBar
         searchPlaceholder="Search employee"
         filters={[
           { name: "date", label: "Date", type: "date" },
-          { name: "departmentId", label: "Department", options: departments.map((d) => ({ value: d.id, label: d.name })) },
+          {
+            name: "departmentId",
+            label: "Department",
+            options: departments.map((d) => ({ value: d.id, label: d.name })),
+          },
         ]}
       />
       <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
@@ -136,7 +184,11 @@ export default async function TeamAttendancePage({ searchParams }: { searchParam
         <StatCard label="Half day" value={count("HALF_DAY")} />
         <StatCard label="On leave" value={count("ON_LEAVE")} />
         <StatCard label="Absent" value={count("ABSENT")} />
-        <StatCard label="Not marked" value={count("NOT_MARKED")} hint={date === today ? "Not checked in yet" : undefined} />
+        <StatCard
+          label="Not marked"
+          value={count("NOT_MARKED")}
+          hint={date === today ? "Not checked in yet" : undefined}
+        />
       </div>
       <Card className="py-0">
         {rows.length === 0 ? (
@@ -159,8 +211,15 @@ export default async function TeamAttendancePage({ searchParams }: { searchParam
               {rows.map(({ employee: e, record: r, status, leave }) => (
                 <TableRow key={e.id}>
                   <TableCell>
-                    <Link href={`/employees/${e.id}`} className="flex items-center gap-2 hover:underline">
-                      <EmployeeAvatar id={e.id} name={`${e.firstName} ${e.lastName}`} hasPhoto={!!e.photoKey} />
+                    <Link
+                      href={`/employees/${e.id}`}
+                      className="flex items-center gap-2 hover:underline"
+                    >
+                      <EmployeeAvatar
+                        id={e.id}
+                        name={`${e.firstName} ${e.lastName}`}
+                        hasPhoto={!!e.photoKey}
+                      />
                       <span>
                         <span className="block font-medium">
                           {e.firstName} {e.lastName}
@@ -169,15 +228,25 @@ export default async function TeamAttendancePage({ searchParams }: { searchParam
                       </span>
                     </Link>
                   </TableCell>
-                  <TableCell className="hidden md:table-cell">{e.department?.name ?? "—"}</TableCell>
+                  <TableCell className="hidden md:table-cell">
+                    {e.department?.name ?? "—"}
+                  </TableCell>
                   <TableCell>
                     <StatusBadge status={status} />
                     {leave && <div className="text-muted-foreground text-xs">{leave}</div>}
                   </TableCell>
-                  <TableCell className="tabular-nums">{r?.checkInAt ? localTime(r.checkInAt) : "—"}</TableCell>
-                  <TableCell className="tabular-nums">{r?.checkOutAt ? localTime(r.checkOutAt) : "—"}</TableCell>
-                  <TableCell className="hidden tabular-nums sm:table-cell">{r?.workMinutes ? formatMinutes(r.workMinutes) : "—"}</TableCell>
-                  <TableCell className="hidden tabular-nums sm:table-cell">{r?.lateMinutes ? `${r.lateMinutes} min` : "—"}</TableCell>
+                  <TableCell className="tabular-nums">
+                    {r?.checkInAt ? localTime(r.checkInAt) : "—"}
+                  </TableCell>
+                  <TableCell className="tabular-nums">
+                    {r?.checkOutAt ? localTime(r.checkOutAt) : "—"}
+                  </TableCell>
+                  <TableCell className="hidden tabular-nums sm:table-cell">
+                    {r?.workMinutes ? formatMinutes(r.workMinutes) : "—"}
+                  </TableCell>
+                  <TableCell className="hidden tabular-nums sm:table-cell">
+                    {r?.lateMinutes ? `${r.lateMinutes} min` : "—"}
+                  </TableCell>
                   {canEdit && (
                     <TableCell>
                       <AdminEditDialog

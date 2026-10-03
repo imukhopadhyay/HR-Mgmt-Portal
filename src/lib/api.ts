@@ -14,7 +14,8 @@ export function withApi<C>(handler: (req: Request, actor: Actor, ctx: C) => Prom
       const actor: Actor = { ...user, ...(await requestMeta()) };
       return await handler(req, actor, ctx);
     } catch (err) {
-      if (err instanceof AppError) return NextResponse.json({ error: err.message }, { status: err.status });
+      if (err instanceof AppError)
+        return NextResponse.json({ error: err.message }, { status: err.status });
       logger.error("api.unhandled", { url: req.url, err });
       return NextResponse.json({ error: "Internal error" }, { status: 500 });
     }

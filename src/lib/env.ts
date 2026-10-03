@@ -51,6 +51,15 @@ export function env(): Env {
   if (value.NODE_ENV === "production" && value.SESSION_SECRET.includes("change-me")) {
     throw new Error("SESSION_SECRET must be replaced with a strong secret in production");
   }
+  if (
+    value.NODE_ENV === "production" &&
+    value.EMAIL_DRIVER === "console" &&
+    process.env.ALLOW_CONSOLE_EMAIL !== "true"
+  ) {
+    throw new Error(
+      "EMAIL_DRIVER=console logs message bodies (including reset links) and is not allowed in production",
+    );
+  }
   if (value.STORAGE_DRIVER === "s3" && !value.S3_BUCKET) {
     throw new Error("S3_BUCKET is required when STORAGE_DRIVER=s3");
   }

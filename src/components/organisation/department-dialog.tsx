@@ -6,7 +6,14 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import type { z } from "zod";
 import { Pencil, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { FormField, NativeSelect } from "@/components/shared/form-field";
@@ -16,10 +23,24 @@ import { saveDepartmentAction, saveDesignationAction } from "@/server/actions/or
 
 type Opt = { id: string; label: string };
 
-export function DepartmentDialog({ initial, departments, employees }: { initial?: z.input<typeof departmentSchema>; departments: Opt[]; employees: Opt[] }) {
+export function DepartmentDialog({
+  initial,
+  departments,
+  employees,
+}: {
+  initial?: z.input<typeof departmentSchema>;
+  departments: Opt[];
+  employees: Opt[];
+}) {
   const [open, setOpen] = useState(false);
-  const form = useForm<z.input<typeof departmentSchema>>({ resolver: zodResolver(departmentSchema), defaultValues: initial ?? { code: "", name: "" } });
-  const { execute, pending } = useAction(saveDepartmentAction, { form, onSuccess: () => setOpen(false) });
+  const form = useForm<z.input<typeof departmentSchema>>({
+    resolver: zodResolver(departmentSchema),
+    defaultValues: initial ?? { code: "", name: "" },
+  });
+  const { execute, pending } = useAction(saveDepartmentAction, {
+    form,
+    onSuccess: () => setOpen(false),
+  });
   const e = form.formState.errors;
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -38,7 +59,12 @@ export function DepartmentDialog({ initial, departments, employees }: { initial?
         <DialogHeader>
           <DialogTitle>{initial ? "Edit department" : "New department"}</DialogTitle>
         </DialogHeader>
-        <form id="dept-form" className="grid gap-4 sm:grid-cols-2" onSubmit={form.handleSubmit((v) => execute(v))} noValidate>
+        <form
+          id="dept-form"
+          className="grid gap-4 sm:grid-cols-2"
+          onSubmit={form.handleSubmit((v) => execute(v))}
+          noValidate
+        >
           <FormField label="Code" htmlFor="d-code" required error={e.code?.message}>
             <Input {...form.register("code")} />
           </FormField>
@@ -48,11 +74,13 @@ export function DepartmentDialog({ initial, departments, employees }: { initial?
           <FormField label="Parent department" htmlFor="d-parent" error={e.parentId?.message}>
             <NativeSelect {...form.register("parentId")}>
               <option value="">— None —</option>
-              {departments.filter((d) => d.id !== initial?.id).map((d) => (
-                <option key={d.id} value={d.id}>
-                  {d.label}
-                </option>
-              ))}
+              {departments
+                .filter((d) => d.id !== initial?.id)
+                .map((d) => (
+                  <option key={d.id} value={d.id}>
+                    {d.label}
+                  </option>
+                ))}
             </NativeSelect>
           </FormField>
           <FormField label="Department head" htmlFor="d-head" error={e.headId?.message}>
@@ -68,7 +96,12 @@ export function DepartmentDialog({ initial, departments, employees }: { initial?
           <FormField label="Cost centre" htmlFor="d-cc" error={e.costCenter?.message}>
             <Input {...form.register("costCenter")} />
           </FormField>
-          <FormField label="Description" htmlFor="d-desc" error={e.description?.message} className="sm:col-span-2">
+          <FormField
+            label="Description"
+            htmlFor="d-desc"
+            error={e.description?.message}
+            className="sm:col-span-2"
+          >
             <Textarea rows={3} {...form.register("description")} />
           </FormField>
         </form>
@@ -82,10 +115,22 @@ export function DepartmentDialog({ initial, departments, employees }: { initial?
   );
 }
 
-export function DesignationDialog({ initial, departments }: { initial?: z.input<typeof designationSchema>; departments: Opt[] }) {
+export function DesignationDialog({
+  initial,
+  departments,
+}: {
+  initial?: z.input<typeof designationSchema>;
+  departments: Opt[];
+}) {
   const [open, setOpen] = useState(false);
-  const form = useForm<z.input<typeof designationSchema>>({ resolver: zodResolver(designationSchema), defaultValues: initial ?? { title: "", level: 1 } });
-  const { execute, pending } = useAction(saveDesignationAction, { form, onSuccess: () => setOpen(false) });
+  const form = useForm<z.input<typeof designationSchema>>({
+    resolver: zodResolver(designationSchema),
+    defaultValues: initial ?? { title: "", level: 1 },
+  });
+  const { execute, pending } = useAction(saveDesignationAction, {
+    form,
+    onSuccess: () => setOpen(false),
+  });
   const e = form.formState.errors;
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -104,8 +149,19 @@ export function DesignationDialog({ initial, departments }: { initial?: z.input<
         <DialogHeader>
           <DialogTitle>{initial ? "Edit designation" : "New designation"}</DialogTitle>
         </DialogHeader>
-        <form id="desig-form" className="grid gap-4 sm:grid-cols-2" onSubmit={form.handleSubmit((v) => execute(v))} noValidate>
-          <FormField label="Title" htmlFor="g-title" required error={e.title?.message} className="sm:col-span-2">
+        <form
+          id="desig-form"
+          className="grid gap-4 sm:grid-cols-2"
+          onSubmit={form.handleSubmit((v) => execute(v))}
+          noValidate
+        >
+          <FormField
+            label="Title"
+            htmlFor="g-title"
+            required
+            error={e.title?.message}
+            className="sm:col-span-2"
+          >
             <Input {...form.register("title")} />
           </FormField>
           <FormField label="Job level (1–10)" htmlFor="g-level" required error={e.level?.message}>
@@ -114,7 +170,12 @@ export function DesignationDialog({ initial, departments }: { initial?: z.input<
           <FormField label="Grade" htmlFor="g-grade" error={e.grade?.message}>
             <Input {...form.register("grade")} />
           </FormField>
-          <FormField label="Department" htmlFor="g-dept" error={e.departmentId?.message} className="sm:col-span-2">
+          <FormField
+            label="Department"
+            htmlFor="g-dept"
+            error={e.departmentId?.message}
+            className="sm:col-span-2"
+          >
             <NativeSelect {...form.register("departmentId")}>
               <option value="">— Any —</option>
               {departments.map((d) => (

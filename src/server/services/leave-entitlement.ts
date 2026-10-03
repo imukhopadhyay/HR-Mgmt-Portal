@@ -32,10 +32,21 @@ export function computeEntitlement(
 }
 
 /** Create missing balances for active leave types (idempotent). */
-export async function ensureLeaveBalances(tx: Tx, employeeId: string, year: number, asOfKey: string) {
-  const emp = await tx.employee.findUniqueOrThrow({ where: { id: employeeId }, select: { dateOfJoining: true } });
+export async function ensureLeaveBalances(
+  tx: Tx,
+  employeeId: string,
+  year: number,
+  asOfKey: string,
+) {
+  const emp = await tx.employee.findUniqueOrThrow({
+    where: { id: employeeId },
+    select: { dateOfJoining: true },
+  });
   const types = await tx.leaveType.findMany({ where: { isActive: true } });
-  const existing = await tx.leaveBalance.findMany({ where: { employeeId, year }, select: { leaveTypeId: true } });
+  const existing = await tx.leaveBalance.findMany({
+    where: { employeeId, year },
+    select: { leaveTypeId: true },
+  });
   const have = new Set(existing.map((e) => e.leaveTypeId));
   const joiningKey = dbDateToKey(emp.dateOfJoining);
   const data = types
@@ -44,7 +55,12 @@ export async function ensureLeaveBalances(tx: Tx, employeeId: string, year: numb
       employeeId,
       leaveTypeId: t.id,
       year,
-      entitled: computeEntitlement({ annualEntitlement: Number(t.annualEntitlement), accrual: t.accrual }, year, joiningKey, asOfKey),
+      entitled: computeEntitlement(
+        { annualEntitlement: Number(t.annualEntitlement), accrual: t.accrual },
+        year,
+        joiningKey,
+        asOfKey,
+      ),
     }));
   if (data.length) await tx.leaveBalance.createMany({ data, skipDuplicates: true });
 }

@@ -9,7 +9,14 @@ import { deleteGoalAction } from "@/server/actions/performance";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { PageHeader } from "@/components/shared/page-header";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { EmptyState } from "@/components/shared/empty-state";
@@ -25,7 +32,11 @@ export default async function PerformancePage() {
     goalsFor(actor, actor.employeeId),
     myReviews(actor.employeeId),
     reviewsToGive(actor),
-    db.performanceCycle.findMany({ where: { status: { in: ["ACTIVE", "DRAFT"] } }, select: { id: true, name: true }, orderBy: { startDate: "desc" } }),
+    db.performanceCycle.findMany({
+      where: { status: { in: ["ACTIVE", "DRAFT"] } },
+      select: { id: true, name: true },
+      orderBy: { startDate: "desc" },
+    }),
   ]);
   const perf = goals.filter((g) => g.type === "PERFORMANCE");
   const dev = goals.filter((g) => g.type === "DEVELOPMENT");
@@ -40,7 +51,16 @@ export default async function PerformancePage() {
               <div className="min-w-0">
                 <p className="font-medium">{g.title}</p>
                 <p className="text-muted-foreground text-xs">
-                  {[g.cycle?.name, g.kpi && `KPI: ${g.kpi}`, g.targetValue !== null && `${toNumber(g.currentValue)} / ${toNumber(g.targetValue)} ${g.unit ?? ""}`, g.weight ? `weight ${g.weight}%` : null, g.dueDate && `due ${formatDateKey(dbDateToKey(g.dueDate))}`].filter(Boolean).join(" · ")}
+                  {[
+                    g.cycle?.name,
+                    g.kpi && `KPI: ${g.kpi}`,
+                    g.targetValue !== null &&
+                      `${toNumber(g.currentValue)} / ${toNumber(g.targetValue)} ${g.unit ?? ""}`,
+                    g.weight ? `weight ${g.weight}%` : null,
+                    g.dueDate && `due ${formatDateKey(dbDateToKey(g.dueDate))}`,
+                  ]
+                    .filter(Boolean)
+                    .join(" · ")}
                 </p>
               </div>
               <div className="flex items-center gap-1">
@@ -48,19 +68,51 @@ export default async function PerformancePage() {
                 <GoalDialog
                   employeeId={g.employeeId}
                   cycles={cycles}
-                  initial={{ id: g.id, employeeId: g.employeeId, cycleId: g.cycleId ?? "", type: g.type, title: g.title, description: g.description ?? "", kpi: g.kpi ?? "", targetValue: g.targetValue !== null ? toNumber(g.targetValue) : "", currentValue: g.currentValue !== null ? toNumber(g.currentValue) : "", unit: g.unit ?? "", weight: g.weight, progress: g.progress, status: g.status, dueDate: g.dueDate ? dbDateToKey(g.dueDate) : "" }}
+                  initial={{
+                    id: g.id,
+                    employeeId: g.employeeId,
+                    cycleId: g.cycleId ?? "",
+                    type: g.type,
+                    title: g.title,
+                    description: g.description ?? "",
+                    kpi: g.kpi ?? "",
+                    targetValue: g.targetValue !== null ? toNumber(g.targetValue) : "",
+                    currentValue: g.currentValue !== null ? toNumber(g.currentValue) : "",
+                    unit: g.unit ?? "",
+                    weight: g.weight,
+                    progress: g.progress,
+                    status: g.status,
+                    dueDate: g.dueDate ? dbDateToKey(g.dueDate) : "",
+                  }}
                 />
-                <ConfirmAction trigger={<Button variant="ghost" size="icon" aria-label={`Remove ${g.title}`}><Trash2 /></Button>} title="Remove goal?" destructive confirmLabel="Remove" action={deleteGoalAction.bind(null, g.id)} />
+                <ConfirmAction
+                  trigger={
+                    <Button variant="ghost" size="icon" aria-label={`Remove ${g.title}`}>
+                      <Trash2 />
+                    </Button>
+                  }
+                  title="Remove goal?"
+                  destructive
+                  confirmLabel="Remove"
+                  action={deleteGoalAction.bind(null, g.id)}
+                />
               </div>
             </div>
-            <Progress value={g.progress} className="mt-2" aria-label={`${g.title} progress ${g.progress}%`} />
+            <Progress
+              value={g.progress}
+              className="mt-2"
+              aria-label={`${g.title} progress ${g.progress}%`}
+            />
           </li>
         ))}
       </ul>
     );
   return (
     <>
-      <PageHeader title="Goals & reviews" description="Track objectives, development plans and performance reviews." />
+      <PageHeader
+        title="Goals & reviews"
+        description="Track objectives, development plans and performance reviews."
+      />
       {toGive.length > 0 && (
         <Card className="py-0">
           <CardHeader className="pt-5">
@@ -80,15 +132,23 @@ export default async function PerformancePage() {
                 <TableRow key={r.id}>
                   <TableCell className="font-medium">
                     {r.employee.firstName} {r.employee.lastName}
-                    <div className="text-muted-foreground text-xs">{r.employee.designation?.title}</div>
+                    <div className="text-muted-foreground text-xs">
+                      {r.employee.designation?.title}
+                    </div>
                   </TableCell>
                   <TableCell>{r.cycle.name}</TableCell>
                   <TableCell>
                     <StatusBadge status={r.status} />
                   </TableCell>
                   <TableCell className="text-right">
-                    <Button size="sm" variant={r.status === "MANAGER_REVIEW" ? "default" : "outline"} asChild>
-                      <Link href={`/performance/reviews/${r.id}`}>{r.status === "MANAGER_REVIEW" ? "Review now" : "Open"}</Link>
+                    <Button
+                      size="sm"
+                      variant={r.status === "MANAGER_REVIEW" ? "default" : "outline"}
+                      asChild
+                    >
+                      <Link href={`/performance/reviews/${r.id}`}>
+                        {r.status === "MANAGER_REVIEW" ? "Review now" : "Open"}
+                      </Link>
                     </Button>
                   </TableCell>
                 </TableRow>
@@ -134,14 +194,28 @@ export default async function PerformancePage() {
               {reviews.map((r) => (
                 <TableRow key={r.id}>
                   <TableCell className="font-medium">{r.cycle.name}</TableCell>
-                  <TableCell>{r.reviewer ? `${r.reviewer.firstName} ${r.reviewer.lastName}` : "HR"}</TableCell>
+                  <TableCell>
+                    {r.reviewer ? `${r.reviewer.firstName} ${r.reviewer.lastName}` : "HR"}
+                  </TableCell>
                   <TableCell>
                     <StatusBadge status={r.status} />
                   </TableCell>
                   <TableCell>{r.finalRating ?? "—"}</TableCell>
                   <TableCell className="text-right">
-                    <Button size="sm" variant={r.status === "SELF_REVIEW" && r.cycle.status === "ACTIVE" ? "default" : "outline"} asChild>
-                      <Link href={`/performance/reviews/${r.id}`}>{r.status === "SELF_REVIEW" && r.cycle.status === "ACTIVE" ? "Start self-assessment" : "View"}</Link>
+                    <Button
+                      size="sm"
+                      variant={
+                        r.status === "SELF_REVIEW" && r.cycle.status === "ACTIVE"
+                          ? "default"
+                          : "outline"
+                      }
+                      asChild
+                    >
+                      <Link href={`/performance/reviews/${r.id}`}>
+                        {r.status === "SELF_REVIEW" && r.cycle.status === "ACTIVE"
+                          ? "Start self-assessment"
+                          : "View"}
+                      </Link>
                     </Button>
                   </TableCell>
                 </TableRow>

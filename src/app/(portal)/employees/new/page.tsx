@@ -10,7 +10,10 @@ export default async function NewEmployeePage() {
   const options = await employeeFormOptions();
   return (
     <>
-      <PageHeader title="Add employee" description="Creates the employee record, onboarding checklist, leave balances and (optionally) a portal account." />
+      <PageHeader
+        title="Add employee"
+        description="Creates the employee record, onboarding checklist, leave balances and (optionally) a portal account."
+      />
       <EmployeeForm options={options} />
     </>
   );
