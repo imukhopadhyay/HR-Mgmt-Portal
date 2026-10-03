@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { KeyRound, LogOut, UserCircle } from "lucide-react";
+import { CalendarPlus, Download, KeyRound, LogOut, UserCircle } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -45,6 +45,18 @@ export function UserMenu({ name, email, roles, hasEmployee }: { name: string; em
             </Link>
           </DropdownMenuItem>
         )}
+        {hasEmployee && (
+          <DropdownMenuItem asChild>
+            <a href="/api/me/export">
+              <Download /> Download my data
+            </a>
+          </DropdownMenuItem>
+        )}
+        <DropdownMenuItem asChild>
+          <a href="/api/calendar/me">
+            <CalendarPlus /> Export my calendar (.ics)
+          </a>
+        </DropdownMenuItem>
         <DropdownMenuItem asChild>
           <Link href="/account/password">
             <KeyRound /> Change password

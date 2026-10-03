@@ -262,7 +262,7 @@ async function main() {
       const [sh, sm] = e.shift!.startTime.split(":").map(Number);
       const late = r < 0.18 ? int(16, 55) : int(-20, 10);
       const inAt = ist(k, sh, sm + late);
-      const worked = int(400, 560);
+      const worked = rand() < 0.05 ? int(250, 420) : int(460, 560);
       const outAt = new Date(inAt.getTime() + worked * 60000);
       const m = computeAttendanceMetrics(k, inAt, outAt, e.shift!, "Asia/Kolkata");
       rows.push({ employeeId: e.id, date: day(k), shiftId: e.shiftId, checkInAt: inAt, checkOutAt: outAt, ...m, source: "WEB" });
@@ -350,6 +350,20 @@ async function main() {
   // ── Notifications ──
   const rahulUser = await prisma.user.findUniqueOrThrow({ where: { email: "manager@acme.test" } });
   await prisma.notification.create({ data: { userId: rahulUser.id, type: "leave.submitted", title: "Leave request awaiting approval", body: "Ananya Gupta applied for Casual Leave.", link: "/approvals" } });
+
+  // ── Payroll: last two months, processed and approved through the real service layer ──
+  const { processRun, createRun, approveRun } = await import("../src/server/services/payroll.service");
+  const { buildSessionUser, sessionUserInclude } = await import("../src/lib/auth/session-user");
+  const asActor = async (email: string) => ({ ...buildSessionUser(await prisma.user.findUniqueOrThrow({ where: { email }, include: sessionUserInclude })), ipAddress: "seed", userAgent: "seed" });
+  const hr = await asActor("hradmin@acme.test");
+  const ceo = await asActor("admin@acme.test");
+  for (const back of [2, 1]) {
+    const d = new Date(Date.UTC(Number(today.slice(0, 4)), Number(today.slice(5, 7)) - 1 - back, 1));
+    const run = await createRun(hr, d.getUTCFullYear(), d.getUTCMonth() + 1);
+    await processRun(hr, run.id);
+    await approveRun(ceo, run.id);
+    if (back === 2) await prisma.payrollRun.update({ where: { id: run.id }, data: { status: "PAID", paidAt: new Date() } });
+  }
 
   console.log(`Seeded ${all.length} employees. Demo accounts (password: ${process.env.SEED_PASSWORD ? "$SEED_PASSWORD" : PASSWORD}):`);
   for (const c of core.slice(0, 6)) console.log(`  ${c.email.padEnd(24)} ${c.title}`);

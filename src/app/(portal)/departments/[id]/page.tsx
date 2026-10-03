@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { requirePagePermission } from "@/lib/auth/guard";
+import { pageError, requirePagePermission } from "@/lib/auth/guard";
 import { db } from "@/lib/db";
 import { humanize } from "@/lib/utils";
 import { departmentDetail } from "@/server/services/organisation.service";
@@ -13,7 +13,7 @@ import { SimpleBarChart } from "@/components/charts/simple-bar-chart";
 export default async function DepartmentPage({ params }: { params: Promise<{ id: string }> }) {
   await requirePagePermission("directory:read");
   const { id } = await params;
-  const { dept, byStatus, byType, byDesignation } = await departmentDetail(id);
+  const { dept, byStatus, byType, byDesignation } = await departmentDetail(id).catch(pageError);
   const members = await db.employee.findMany({
     where: { departmentId: id, deletedAt: null, status: { not: "EXITED" } },
     select: { id: true, firstName: true, lastName: true, photoKey: true, status: true, designation: { select: { title: true } } },

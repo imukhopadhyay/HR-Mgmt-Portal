@@ -22,7 +22,7 @@ for (const path of paths) {
   const r = await p.goto(base + path, { timeout: 180000 });
   const h1 = await p.locator("h1").first().textContent().catch(() => "?");
   console.log(path, r.status(), "|", h1);
-  await p.screenshot({ path: `${outDir}/${email.split("@")[0]}${path.replace(/[/?=&]/g, "_")}.png`, fullPage: true });
+  await p.screenshot({ path: `${outDir}/${email.split("@")[0]}${path.replace(/[/?=&]/g, "_")}.png`, fullPage: true, caret: "initial", animations: "allow" });
 }
 console.log(errs.join("\n") || "no errors");
 await b.close();

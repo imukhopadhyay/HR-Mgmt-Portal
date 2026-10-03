@@ -1,6 +1,7 @@
 import "server-only";
 import { redirect } from "next/navigation";
 import { notFound } from "next/navigation";
+import { ForbiddenError, NotFoundError } from "@/lib/errors";
 import type { Permission } from "./permissions";
 import { getSessionUser } from "./session";
 import type { SessionUser } from "./session-user";
@@ -20,3 +21,13 @@ export async function requirePagePermission(...perms: Permission[]): Promise<Ses
 }
 
 export { notFound };
+
+/**
+ * Map domain errors thrown while loading a page to the right Next.js response:
+ * NotFound → 404, Forbidden → access-denied page. Usage: `await load().catch(pageError)`.
+ */
+export function pageError(err: unknown): never {
+  if (err instanceof NotFoundError) notFound();
+  if (err instanceof ForbiddenError) redirect("/forbidden");
+  throw err;
+}

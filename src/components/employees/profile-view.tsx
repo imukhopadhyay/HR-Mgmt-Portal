@@ -1,3 +1,4 @@
+import { pageError } from "@/lib/auth/guard";
 import Link from "next/link";
 import { Briefcase, Building2, CalendarDays, Mail, MapPin, Pencil, Phone, UserRound } from "lucide-react";
 import type { Actor } from "@/lib/action";
@@ -37,7 +38,7 @@ function Item({ icon: Icon, label, value }: { icon?: React.ComponentType<{ class
 }
 
 export async function ProfileView({ actor, employeeId, tab }: { actor: Actor; employeeId: string; tab?: string }) {
-  const { employee: e, access } = await getEmployeeProfile(actor, employeeId);
+  const { employee: e, access } = await getEmployeeProfile(actor, employeeId).catch(pageError);
   const name = fullName(e);
   if (!access.full) {
     // Directory-level view.
