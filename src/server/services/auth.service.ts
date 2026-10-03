@@ -113,3 +113,25 @@ export async function changePassword(userId: string, current: string, next: stri
   ]);
   await audit({ id: userId, ...meta }, { action: "auth.password_changed", entityType: "User", entityId: userId });
 }
+
+const INVITE_TTL_HOURS = 72;
+
+/** Sends a "set your password" link to a newly provisioned account. */
+export async function sendAccountInvite(userId: string, name: string): Promise<void> {
+  const user = await db.user.findUniqueOrThrow({ where: { id: userId } });
+  const token = generateToken();
+  await db.passwordResetToken.create({
+    data: { userId, tokenHash: hashToken(token), expiresAt: new Date(Date.now() + INVITE_TTL_HOURS * 3600_000) },
+  });
+  const url = `${env().APP_URL}/reset-password?token=${encodeURIComponent(token)}`;
+  await sendEmail({
+    to: user.email,
+    subject: "Welcome to the HR Portal — set your password",
+    text: `Hello ${name},\n\nAn HR Portal account has been created for you.\nSet your password using this link (valid for ${INVITE_TTL_HOURS} hours):\n${url}`,
+  });
+}
+
+/** Unusable random password hash for accounts that must be activated via invite. */
+export async function placeholderPasswordHash(): Promise<string> {
+  return hashPassword(generateToken() + generateToken());
+}

@@ -21,6 +21,7 @@ export function toActionError(err: unknown): { ok: false; error: string; fieldEr
     if (err.code === "P2002") return { ok: false, error: "A record with the same unique value already exists." };
     if (err.code === "P2025") return { ok: false, error: "Record not found." };
     if (err.code === "P2003") return { ok: false, error: "This record is referenced by other data." };
+    if (err.code === "P2034") return { ok: false, error: "Another update happened at the same time. Please try again." };
   }
   // Re-throw Next.js control-flow errors (redirect/notFound).
   if (err && typeof err === "object" && "digest" in err && typeof (err as { digest: unknown }).digest === "string" && (err as { digest: string }).digest.startsWith("NEXT_")) {

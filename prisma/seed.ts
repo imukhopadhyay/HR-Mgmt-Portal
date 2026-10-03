@@ -11,6 +11,7 @@ import bcrypt from "bcryptjs";
 import { syncDerivedRoles, syncRolesAndPermissions } from "../src/lib/auth/role-sync";
 import { DEFAULT_STATUTORY_CONFIG, DEFAULT_RETENTION_POLICY } from "../src/lib/settings-defaults";
 import { ONBOARDING_TEMPLATE } from "../src/lib/checklists";
+import { computeAttendanceMetrics } from "../src/lib/attendance-rules";
 
 const prisma = new PrismaClient();
 const PASSWORD = process.env.SEED_PASSWORD ?? "Passw0rd!2026";
@@ -63,8 +64,8 @@ async function main() {
   await prisma.setting.upsert({ where: { key: "privacy.retention" }, update: {}, create: { key: "privacy.retention", value: DEFAULT_RETENTION_POLICY as unknown as Prisma.InputJsonValue, description: "Data retention periods" } });
 
   // ── Shifts ──
-  const general = await prisma.shift.create({ data: { name: "General (09:30–18:30)", startTime: "09:30", endTime: "18:30", graceMinutes: 15, fullDayMinutes: 480, halfDayMinutes: 240, weeklyOffs: [0, 6], isDefault: true } });
-  const support = await prisma.shift.create({ data: { name: "Support (07:00–16:00)", startTime: "07:00", endTime: "16:00", graceMinutes: 10, fullDayMinutes: 480, halfDayMinutes: 240, weeklyOffs: [0] } });
+  const general = await prisma.shift.create({ data: { name: "General (09:30–18:30)", startTime: "09:30", endTime: "18:30", graceMinutes: 15, fullDayMinutes: 450, halfDayMinutes: 240, weeklyOffs: [0, 6], isDefault: true } });
+  const support = await prisma.shift.create({ data: { name: "Support (07:00–16:00)", startTime: "07:00", endTime: "16:00", graceMinutes: 10, fullDayMinutes: 450, halfDayMinutes: 240, weeklyOffs: [0] } });
 
   // ── Holidays (synthetic calendar based on common Indian public holidays) ──
   const holidays: [string, string, "PUBLIC" | "OPTIONAL"][] = [
@@ -261,14 +262,10 @@ async function main() {
       const [sh, sm] = e.shift!.startTime.split(":").map(Number);
       const late = r < 0.18 ? int(16, 55) : int(-20, 10);
       const inAt = ist(k, sh, sm + late);
-      const worked = int(420, 560);
+      const worked = int(400, 560);
       const outAt = new Date(inAt.getTime() + worked * 60000);
-      rows.push({
-        employeeId: e.id, date: day(k), shiftId: e.shiftId, checkInAt: inAt, checkOutAt: outAt,
-        workMinutes: worked, overtimeMinutes: Math.max(0, worked - e.shift!.fullDayMinutes),
-        lateMinutes: late > e.shift!.graceMinutes ? late : 0, earlyLeaveMinutes: 0,
-        status: worked >= e.shift!.fullDayMinutes - 60 ? "PRESENT" : "HALF_DAY", source: "WEB",
-      });
+      const m = computeAttendanceMetrics(k, inAt, outAt, e.shift!, "Asia/Kolkata");
+      rows.push({ employeeId: e.id, date: day(k), shiftId: e.shiftId, checkInAt: inAt, checkOutAt: outAt, ...m, source: "WEB" });
     }
   }
   await prisma.attendance.createMany({ data: rows });

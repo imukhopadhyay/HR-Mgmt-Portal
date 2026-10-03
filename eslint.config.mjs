@@ -14,6 +14,7 @@ const eslintConfig = [
       "no-console": ["warn", { allow: ["warn", "error"] }],
     },
   },
+  { files: ["prisma/**", "scripts/**", "tests/**"], rules: { "no-console": "off" } },
 ];
 
 export default eslintConfig;
