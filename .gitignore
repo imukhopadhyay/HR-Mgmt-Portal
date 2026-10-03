@@ -16,3 +16,4 @@ next-env.d.ts
 /backups
 *.log
 /storage-test
+tests/e2e/.auth

@@ -46,6 +46,10 @@ export function computeAuditHash(prevHash: string | null, payload: Record<string
  * transaction-scoped advisory lock to keep the hash chain linear.
  */
 export async function writeAudit(tx: Tx, actor: AuditActor | null, entry: AuditEntry) {
+  // Under REPEATABLE READ / SERIALIZABLE the snapshot predates the lock, so the
+  // "latest" row could be stale and fork the chain. Require READ COMMITTED.
+  const [{ transaction_isolation: iso }] = await tx.$queryRaw<{ transaction_isolation: string }[]>`SHOW transaction_isolation`;
+  if (iso !== "read committed") throw new Error(`writeAudit requires READ COMMITTED isolation (got ${iso})`);
   await tx.$executeRaw`SELECT pg_advisory_xact_lock(727274)`;
   const last = await tx.auditLog.findFirst({ orderBy: { seq: "desc" }, select: { hash: true } });
   const createdAt = new Date();

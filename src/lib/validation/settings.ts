@@ -2,8 +2,8 @@ import { z } from "zod";
 
 const pct = z.coerce.number().min(0).max(100);
 const amt = z.coerce.number().min(0).max(1e9);
-const slab = z.object({ upTo: z.union([amt, z.null()]), rate: pct });
-const ptSlab = z.object({ upTo: z.union([amt, z.null()]), amount: amt });
+const slab = z.object({ upTo: z.union([z.null(), amt]), rate: pct });
+const ptSlab = z.object({ upTo: z.union([z.null(), amt]), amount: amt });
 
 function lastOpen<T extends { upTo: number | null }>(arr: T[]) {
   return arr.length > 0 && arr[arr.length - 1].upTo === null && arr.slice(0, -1).every((s, i, a) => s.upTo !== null && (i === 0 || (a[i - 1].upTo ?? 0) < s.upTo));

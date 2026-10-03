@@ -13,6 +13,7 @@ import { StatusBadge } from "@/components/shared/status-badge";
 import { EmptyState } from "@/components/shared/empty-state";
 import { ConfirmAction } from "@/components/shared/confirm-action";
 import { ApplyLeaveDialog } from "@/components/leave/apply-leave-dialog";
+import { FilterBar } from "@/components/shared/filter-bar";
 
 export const metadata = { title: "Leave" };
 
@@ -36,6 +37,7 @@ export default async function LeavePage({ searchParams }: { searchParams: Promis
   return (
     <>
       <PageHeader title="My leave" description={`Balances and requests for ${year}`} actions={<ApplyLeaveDialog types={typeOptions} />} />
+      <FilterBar search={false} filters={[{ name: "year", label: "Year", options: [-1, 0, 1].map((d) => String(Number(today.slice(0, 4)) + d)).map((y) => ({ value: y, label: y })) }]} />
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
         {balances.map((b) => {
           const total = b.entitled + b.carriedForward + b.adjusted;

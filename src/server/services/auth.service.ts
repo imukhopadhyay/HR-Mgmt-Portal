@@ -22,7 +22,7 @@ const GENERIC = "Invalid email or password.";
 export async function authenticate(email: string, password: string, meta: RequestMeta): Promise<AuthResult> {
   const normalized = email.trim().toLowerCase();
   const [byIp, byEmail] = await Promise.all([
-    rateLimit(`login:ip:${meta.ipAddress ?? "unknown"}`, 30, 15 * 60),
+    rateLimit(`login:ip:${meta.ipAddress ?? "unknown"}`, 100, 15 * 60),
     rateLimit(`login:email:${normalized}`, 10, 15 * 60),
   ]);
   if (!byIp.allowed || !byEmail.allowed) throw new RateLimitError();

@@ -44,6 +44,8 @@ export async function saveTraining(actor: Actor, input: TrainingInput) {
 }
 
 async function capacityCheck(tx: Prisma.TransactionClient, trainingId: string, adding: number) {
+  // Row lock serialises concurrent enrolments for the same programme.
+  await tx.$queryRaw`SELECT id FROM "Training" WHERE id = ${trainingId} FOR UPDATE`;
   const t = await tx.training.findFirst({ where: { id: trainingId, deletedAt: null } });
   if (!t) throw new NotFoundError("Training");
   if (["COMPLETED", "CANCELLED"].includes(t.status)) throw new ConflictError("This programme is closed for enrolment.");
@@ -64,7 +66,7 @@ export async function selfEnroll(actor: Actor, trainingId: string) {
     if (existing) await tx.trainingEnrollment.update({ where: { id: existing.id }, data: { status: "ENROLLED" } });
     else await tx.trainingEnrollment.create({ data: { trainingId, employeeId } });
     await writeAudit(tx, actor, { action: "training.enroll", entityType: "Training", entityId: trainingId, summary: "Self-enrolled" });
-  }, { isolationLevel: "Serializable" });
+  });
 }
 
 export async function cancelEnrollment(actor: Actor, enrollmentId: string) {
@@ -90,7 +92,7 @@ export async function enrollEmployees(actor: Actor, trainingId: string, employee
     }
     await writeAudit(tx, actor, { action: "training.enroll_bulk", entityType: "Training", entityId: trainingId, summary: `${fresh.length} enrolled in ${t.title}` });
     return { fresh, title: t.title };
-  }, { isolationLevel: "Serializable" });
+  });
   await notifyEmployees(added.fresh, { type: "training.enrolled", title: "You have been enrolled in a training", body: added.title, link: "/training" }, { email: true });
   return { added: added.fresh.length };
 }

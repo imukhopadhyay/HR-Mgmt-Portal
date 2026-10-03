@@ -1,4 +1,4 @@
-import { Prisma, type LeaveRequest, type LeaveStatus } from "@prisma/client";
+import type { Prisma, LeaveRequest, LeaveStatus } from "@prisma/client";
 import { db, type Tx } from "@/lib/db";
 import { writeAudit } from "@/lib/audit";
 import type { Actor } from "@/lib/action";
@@ -49,6 +49,9 @@ function balanceNumbers(b: { entitled: Prisma.Decimal; carriedForward: Prisma.De
 
 /** Validate dates/policy/balance/overlap and compute chargeable days (within a transaction). */
 async function prepare(tx: Tx, employeeId: string, input: LeaveInput, opts: { excludeRequestId?: string; currentReservation?: number; isAdminEntry?: boolean }) {
+  // Serialise all leave applications/modifications for this employee so overlap
+  // and balance checks cannot race (READ COMMITTED + row lock).
+  await tx.$queryRaw`SELECT id FROM "Employee" WHERE id = ${employeeId} FOR UPDATE`;
   const type = await tx.leaveType.findFirst({ where: { id: input.leaveTypeId, isActive: true } });
   if (!type) throw new ValidationError("Select a valid leave type.", { leaveTypeId: ["Invalid leave type"] });
   const emp = await tx.employee.findUniqueOrThrow({ where: { id: employeeId }, select: { status: true, dateOfJoining: true, exitDate: true } });
@@ -118,7 +121,6 @@ export async function applyLeave(actor: Actor, input: LeaveInput) {
       await writeAudit(tx, actor, { action: "leave.apply", entityType: "LeaveRequest", entityId: req.id, summary: `${type.code} ${input.startDate}→${input.endDate} (${days}d)` });
       return { req, typeName: type.name };
     },
-    { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
   );
   await notifyApprovers(req.req, actor.name, req.typeName, `${input.startDate} to ${input.endDate}`);
   return req.req;
@@ -213,7 +215,6 @@ export async function modifyLeave(actor: Actor, id: string, input: LeaveInput) {
       if (claim.count !== 1) throw new ConflictError("This request was updated by someone else.");
       await writeAudit(tx, actor, { action: "leave.modify", entityType: "LeaveRequest", entityId: id, summary: `${type.code} ${input.startDate}→${input.endDate} (${days}d)` });
     },
-    { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
   );
   const t = await db.leaveType.findUniqueOrThrow({ where: { id: input.leaveTypeId } });
   await notifyApprovers({ id, employeeId, currentLevel: 1 }, actor.name, t.name, `${input.startDate} to ${input.endDate}`);
